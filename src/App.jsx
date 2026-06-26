@@ -1,7 +1,17 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { marked } from 'marked'
-import DocumentPages from './components/DocumentPages'
+import DocumentPreview from './components/DocumentPreview'
 import RichEditor from './components/RichEditor'
+import { deleteDocument, getDocumentById, saveDocument } from './api/documents'
+import { createInitialFormData, mergeLoadedFormData } from './constants/documentSchema'
+import { TEMPLATE_OPTIONS, isRiskGuideTemplate } from './templates/registry'
+import {
+  createRiskGuideBlank,
+  createRiskGuideExample,
+  createRiskGuideFormData,
+} from './templates/risk-guide/defaults'
+import { isSupabaseConfigured } from './lib/supabase'
 import { generateReportFromFile } from './utils/aiHelper'
 import { exportToPDF } from './utils/pdfExport'
 import './App.css'
@@ -314,36 +324,17 @@ function toHtml(text) {
 const RETENTION_OPTIONS = ['영구', '준영구', '10년', '5년', '3년', '1년']
 const CLASSIFICATION_OPTIONS = ['일반문서', '대외비', '비밀', '기밀']
 
-const today = new Date().toLocaleDateString('ko-KR', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-})
-
-const initialData = {
-  orgName: 'iStaging Asia',
-  recipient: '',
-  via: '',
-  sender: '',
-  title: '',
-  body: '',
-  retention: '1년',
-  attachedFileName: '',
-  author: '',
-  reviewer: '',
-  approver: '',
-  department: '',
-  docNumber: '',
-  date: today,
-  classification: '일반문서',
-  showApproval: false,
-  showSeal: false,
-}
-
 export default function App() {
-  const [data, setData] = useState(initialData)
+  const { id: routeDocumentId } = useParams()
+  const navigate = useNavigate()
+  const [data, setData] = useState(() => createInitialFormData())
+  const [documentId, setDocumentId] = useState(null)
+  const [isLoadingDoc, setIsLoadingDoc] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [saveNotice, setSaveNotice] = useState(null)
   const [aiError, setAiError] = useState('')
   const [attachedFile, setAttachedFile] = useState(null)
   const [mobileView, setMobileView] = useState('form')
@@ -352,6 +343,50 @@ export default function App() {
   const previewScrollRef = useRef(null)
   const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT}px)`)
   const previewActive = !isMobile || mobileView === 'preview'
+
+  const isRiskGuide = isRiskGuideTemplate(data.templateId)
+
+  useEffect(() => {
+    if (!routeDocumentId) {
+      setData(createInitialFormData())
+      setDocumentId(null)
+      setLoadError('')
+      setAttachedFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    if (!isSupabaseConfigured()) {
+      setLoadError('.env에 Supabase 설정이 필요합니다.')
+      return
+    }
+
+    let cancelled = false
+    setIsLoadingDoc(true)
+    setLoadError('')
+    setSaveNotice(null)
+
+    getDocumentById(routeDocumentId)
+      .then((doc) => {
+        if (cancelled) return
+        setData(mergeLoadedFormData(doc.form_data))
+        setDocumentId(doc.id)
+        setAttachedFile(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setLoadError(err?.message || '문서를 불러오지 못했습니다.')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDoc(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [routeDocumentId])
 
   useEffect(() => {
     if (!isMobile) setMobileView('form')
@@ -432,12 +467,113 @@ export default function App() {
 
   const handleExportPDF = async () => {
     setIsExporting(true)
+    setSaveNotice(null)
+
+    let pdfOk = false
+    let pdfError = null
+    let dbOk = false
+    let dbError = null
+    let dbMessage = ''
+
     try {
       const filename = `${data.title || '보고서'}_${data.date}.pdf`
       await exportToPDF('document-preview', filename)
-    } finally {
-      setIsExporting(false)
+      pdfOk = true
+    } catch (err) {
+      pdfError = err?.message || 'PDF 생성 중 오류가 발생했습니다.'
     }
+
+    if (isSupabaseConfigured()) {
+      try {
+        const result = await saveDocument({ documentId, formData: data })
+        setDocumentId(result.id)
+        if (result.isNew) {
+          navigate(`/edit/${result.id}`, { replace: true })
+        }
+        dbOk = true
+        dbMessage = result.isNew ? '문서가 새로 저장되었습니다.' : '문서가 수정 저장되었습니다.'
+      } catch (err) {
+        dbError = err?.message || '문서 저장 중 오류가 발생했습니다.'
+      }
+    }
+
+    if (pdfOk && dbOk) {
+      setSaveNotice({ type: 'success', message: `PDF 저장 및 ${dbMessage}` })
+    } else if (pdfOk && dbError) {
+      setSaveNotice({ type: 'warning', message: `PDF는 저장되었으나 DB 저장 실패: ${dbError}` })
+    } else if (!pdfOk && dbOk) {
+      setSaveNotice({ type: 'warning', message: `PDF 저장 실패. 문서만 DB에 저장됨: ${dbMessage}` })
+    } else if (!pdfOk && dbError) {
+      setSaveNotice({
+        type: 'error',
+        message: `PDF: ${pdfError} / DB: ${dbError}`,
+      })
+    } else if (pdfOk && !isSupabaseConfigured()) {
+      setSaveNotice({
+        type: 'warning',
+        message: 'PDF는 저장되었으나 Supabase가 설정되지 않아 문서는 DB에 저장되지 않았습니다.',
+      })
+    } else if (pdfError) {
+      setSaveNotice({ type: 'error', message: pdfError })
+    }
+
+    setIsExporting(false)
+  }
+
+  const handleDeleteDocument = async () => {
+    if (!documentId) return
+
+    const label = data.title?.trim() || '제목 없음'
+    if (!window.confirm(`「${label}」 문서를 삭제할까요?\n삭제 후에는 되돌릴 수 없습니다.`)) {
+      return
+    }
+
+    setIsDeleting(true)
+    setSaveNotice(null)
+
+    try {
+      await deleteDocument(documentId)
+      navigate('/documents')
+    } catch (err) {
+      setSaveNotice({
+        type: 'error',
+        message: err?.message || '문서 삭제에 실패했습니다.',
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleTemplateChange = (e) => {
+    const nextId = e.target.value
+    if (nextId === data.templateId) return
+
+    if (!window.confirm('템플릿을 변경하면 작성 중인 내용이 초기화됩니다. 계속할까요?')) {
+      e.target.value = data.templateId
+      return
+    }
+
+    setDocumentId(null)
+    setSaveNotice(null)
+    setAttachedFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    if (routeDocumentId) navigate('/', { replace: true })
+
+    if (isRiskGuideTemplate(nextId)) {
+      setData(createRiskGuideFormData())
+    } else {
+      setData(createInitialFormData())
+    }
+  }
+
+  const handleLoadRiskExample = () => {
+    if (!window.confirm('예시 내용으로 덮어씁니다. 계속할까요?')) return
+    setData(createRiskGuideExample())
+  }
+
+  const handleClearRiskContent = () => {
+    if (!window.confirm('제목·작성자·본문을 비웁니다. 계속할까요?')) return
+    setData(createRiskGuideBlank())
   }
 
   return (
@@ -460,29 +596,154 @@ export default function App() {
             <line x1="7" y1="16" x2="13" y2="16" stroke="white" strokeWidth="1.5" />
           </svg>
           <span className="app-title">보고서 작성 시스템</span>
-        </div>
-        <button
-          className="btn-export btn-export-desktop"
-          onClick={handleExportPDF}
-          disabled={isExporting}
-        >
-          {isExporting ? (
-            <span className="btn-spinner" />
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v13M7 11l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <path d="M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+          {documentId && (
+            <span className="doc-saved-badge" title={documentId}>
+              저장됨
+            </span>
           )}
-          {isExporting ? 'PDF 변환 중...' : 'PDF로 저장'}
-        </button>
+        </div>
+        <div className="app-header-right">
+          <Link to="/documents" className="btn-header-nav">
+            문서 목록
+          </Link>
+          <Link to="/" className="btn-header-nav">
+            새 문서
+          </Link>
+          {isRiskGuide && (
+            <>
+              <button
+                type="button"
+                className="btn-header-nav"
+                onClick={handleLoadRiskExample}
+                disabled={isExporting || isDeleting}
+              >
+                예시 불러오기
+              </button>
+              <button
+                type="button"
+                className="btn-header-nav"
+                onClick={handleClearRiskContent}
+                disabled={isExporting || isDeleting}
+              >
+                내용 비우기
+              </button>
+            </>
+          )}
+          {documentId && (
+            <button
+              type="button"
+              className="btn-header-nav btn-header-nav-danger"
+              onClick={handleDeleteDocument}
+              disabled={isDeleting || isExporting}
+            >
+              {isDeleting ? '삭제 중...' : '문서 삭제'}
+            </button>
+          )}
+          {saveNotice && (
+            <div className={`save-notice save-notice-${saveNotice.type}`} role="status">
+              {saveNotice.message}
+            </div>
+          )}
+          <button
+            className="btn-export btn-export-desktop"
+            onClick={handleExportPDF}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <span className="btn-spinner" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v13M7 11l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path d="M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            )}
+            {isExporting ? '저장 중...' : 'PDF로 저장'}
+          </button>
+        </div>
       </header>
+      {saveNotice && isMobile && (
+        <div className={`save-notice-mobile save-notice-${saveNotice.type}`} role="status">
+          {saveNotice.message}
+        </div>
+      )}
+
+      {isLoadingDoc && (
+        <div className="editor-loading-banner" role="status">
+          문서를 불러오는 중...
+        </div>
+      )}
+      {loadError && (
+        <div className="editor-error-banner" role="alert">
+          {loadError}
+        </div>
+      )}
 
       <div className="app-body">
         {/* ── 좌측 폼 패널 ── */}
         <aside className={`form-panel ${isMobile && mobileView === 'preview' ? 'mobile-hidden' : ''}`}>
           <div className="form-scroll">
 
+            <section className="form-section">
+              <h3 className="section-title">
+                <span className="section-icon">📄</span> 템플릿
+              </h3>
+              <div className="field">
+                <label>문서 양식</label>
+                <select
+                  className="input template-select"
+                  value={data.templateId}
+                  onChange={handleTemplateChange}
+                >
+                  {TEMPLATE_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+
+            {isRiskGuide && (
+              <section className="form-section">
+                <h3 className="section-title">
+                  <span className="section-icon">📋</span> 기본 정보
+                </h3>
+                <div className="field">
+                  <label>제목 <span className="required">*</span></label>
+                  <input
+                    type="text"
+                    value={data.title}
+                    onChange={set('title')}
+                    placeholder="업무 리스크 관리"
+                    className="input input-lg"
+                  />
+                </div>
+                <div className="field-grid-2">
+                  <div className="field">
+                    <label>작성자</label>
+                    <input
+                      type="text"
+                      value={data.author}
+                      onChange={set('author')}
+                      placeholder="이름 / 부서"
+                      className="input"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>작성일</label>
+                    <input
+                      type="text"
+                      value={data.date}
+                      onChange={set('date')}
+                      className="input"
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {!isRiskGuide && (
+            <>
             {/* 기본 정보 섹션 */}
             <section className="form-section">
               <h3 className="section-title">
@@ -668,12 +929,15 @@ export default function App() {
                 표지 및 본문의 직인 영역을 출력에 포함합니다.
               </p>
             </section>
+            </>
+            )}
 
             {/* 문서 내용 섹션 */}
             <section className="form-section">
               <h3 className="section-title">
                 <span className="section-icon">📝</span> 문서 내용
               </h3>
+              {!isRiskGuide && (
               <div className="field">
                 <label>제목 <span className="required">*</span></label>
                 <input
@@ -684,16 +948,23 @@ export default function App() {
                   className="input input-lg"
                 />
               </div>
+              )}
               <div className="field">
                 <label>본문 <span className="required">*</span></label>
                 <RichEditor
                   value={data.body}
                   onChange={(html) => setData((prev) => ({ ...prev, body: html }))}
-                  placeholder="본문을 직접 입력하거나, 파일을 첨부하여 AI로 생성하세요."
+                  placeholder={
+                    isRiskGuide
+                      ? '본문을 입력하세요. 표·목록·형광펜 등을 사용할 수 있습니다.'
+                      : '본문을 직접 입력하거나, 파일을 첨부하여 AI로 생성하세요.'
+                  }
                 />
               </div>
             </section>
 
+            {!isRiskGuide && (
+            <>
             {/* 보존기간 섹션 */}
             <section className="form-section">
               <h3 className="section-title">
@@ -779,6 +1050,8 @@ export default function App() {
                 )}
               </button>
             </section>
+            </>
+            )}
 
           </div>
 
@@ -831,7 +1104,7 @@ export default function App() {
                     <path d="M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                 )}
-                {isExporting ? '변환 중...' : 'PDF 저장'}
+                {isExporting ? '저장 중...' : 'PDF 저장'}
               </button>
             )}
           </div>
@@ -840,7 +1113,12 @@ export default function App() {
               active={previewActive}
               maxScale={isMobile ? 1 : DEFAULT_SCALE}
             >
-              <DocumentPages data={data} bodyChunks={bodyChunks} id="document-preview" />
+              <DocumentPreview
+                templateId={data.templateId}
+                data={data}
+                bodyChunks={bodyChunks}
+                id="document-preview"
+              />
             </ScaledPreview>
           </div>
         </main>

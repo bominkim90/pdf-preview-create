@@ -1,0 +1,150 @@
+/* 업무 리스크 관리 양식 */
+
+.risk-guide-wrapper {
+  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+}
+
+.risk-guide-page {
+  display: flex;
+  flex-direction: column;
+  padding: 48px 56px 40px;
+  font-size: 10.5pt;
+  line-height: 1.75;
+  color: #1a1a2e;
+}
+
+.risk-guide-header {
+  flex-shrink: 0;
+  margin-bottom: 20px;
+}
+
+.risk-guide-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 9.5pt;
+  color: #374151;
+  margin-top: 12px;
+}
+
+.risk-guide-meta-row {
+  display: flex;
+  gap: 8px;
+}
+
+.risk-guide-meta-label {
+  font-weight: 600;
+  color: #1a3a6b;
+}
+
+.risk-guide-title-block {
+  text-align: center;
+}
+
+.risk-guide-title-line {
+  border: none;
+  border-top: 2px solid #1a3a6b;
+  margin: 0;
+}
+
+.risk-guide-title {
+  font-size: 22pt;
+  font-weight: 700;
+  color: #1a3a6b;
+  margin: 14px 0;
+  letter-spacing: 0.02em;
+}
+
+.risk-guide-continued {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9pt;
+  color: #6b7280;
+  border-bottom: 1px solid #d4d8e1;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.risk-guide-page-num {
+  font-weight: 600;
+}
+
+.risk-guide-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.risk-guide-body .risk-summary-box {
+  background: #e8f0fe;
+  border-left: 4px solid #1a3a6b;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 0 6px 6px 0;
+}
+
+.risk-guide-body h2 {
+  font-size: 12pt;
+  font-weight: 700;
+  color: #1a3a6b;
+  margin: 18px 0 8px;
+}
+
+.risk-guide-body ul,
+.risk-guide-body ol {
+  padding-left: 22px;
+  margin: 6px 0 12px;
+}
+
+.risk-guide-body li {
+  margin: 4px 0;
+}
+
+.risk-guide-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 16px;
+  font-size: 9.5pt;
+}
+
+.risk-guide-body th {
+  background: #1a3a6b;
+  color: white;
+  font-weight: 600;
+  padding: 8px 10px;
+  border: 1px solid #1a3a6b;
+  text-align: left;
+}
+
+.risk-guide-body td {
+  padding: 8px 10px;
+  border: 1px solid #d4d8e1;
+  vertical-align: top;
+}
+
+.risk-guide-body mark {
+  background: #fff59d;
+  padding: 0 2px;
+}
+
+.risk-guide-body p {
+  margin: 0 0 8px;
+}
+
+.risk-guide-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 24px;
+  margin-top: auto;
+}
+
+.risk-guide-logo {
+  max-height: 48px;
+  max-width: 200px;
+  object-fit: contain;
+}
