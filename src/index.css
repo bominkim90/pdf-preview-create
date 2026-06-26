@@ -1,0 +1,37 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-primary: #1a3a6b;
+  --color-primary-light: #2856a3;
+  --color-accent: #c8102e;
+  --color-bg: #f0f2f5;
+  --color-panel: #ffffff;
+  --color-border: #d4d8e1;
+  --color-text: #1a1a2e;
+  --color-text-muted: #6b7280;
+  --color-success: #16a34a;
+  --radius: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c1c9d6;
+  border-radius: 3px;
+}

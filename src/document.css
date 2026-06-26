@@ -1,0 +1,454 @@
+@import url('https://fonts.googleapis.com/css2?family=Chiron+Sung+HK:ital,wght@0,200..900;1,200..900&display=swap');
+
+/* ============================================
+   A4 Document Styles — Korean Government Format
+   ============================================ */
+
+.doc-pages-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.a4-page {
+  width: 794px;
+  height: 1123px;       /* 고정: PDF 출력 시 정확한 A4 */
+  overflow: hidden;     /* 페이지 바깥 내용 차단 */
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  position: relative;
+  font-family: 'Chiron Sung HK', serif;
+  font-size: 12pt;
+  line-height: 1.8;
+  color: #000;
+  flex-shrink: 0;
+}
+
+/* 페이지 내부를 flex column으로 — 헤더/본문/푸터 순 배치 */
+.body-page {
+  display: flex;
+  flex-direction: column;
+}
+
+/* === COVER PAGE === */
+.cover-page {
+  display: flex;
+  flex-direction: column;
+  padding: 60px 70px;
+}
+
+.cover-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom:20px;
+}
+
+.cover-logo {
+  max-height: 56px;
+  max-width: 240px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.cover-classification {
+  font-size: 10pt;
+  border: 1.5px solid #1a3a6b;
+  padding: 4px 12px;
+  color: #1a3a6b;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.cover-divider-top {
+  border: none;
+  border-top: 3px solid #1a3a6b;
+  margin: 0 0 80px 0;
+}
+
+.cover-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 32px;
+}
+
+.cover-doc-type {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #1a3a6b;
+  letter-spacing: 8px;
+  font-family: 'Noto Sans KR', sans-serif;
+  border-bottom: 2px solid #1a3a6b;
+  padding-bottom: 12px;
+}
+
+.cover-title {
+  font-size: 22pt;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #111;
+  word-break: keep-all;
+  max-width: 560px;
+}
+
+.cover-subtitle {
+  font-size: 13pt;
+  color: #555;
+}
+
+.cover-divider-bottom {
+  border: none;
+  border-top: 1.5px solid #ccc;
+  margin: 40px 0 20px 0;
+}
+
+.cover-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.cover-meta-row {
+  display: flex;
+  gap: 8px;
+  font-size: 11pt;
+}
+
+.cover-meta-label {
+  color: #555;
+  min-width: 64px;
+  text-align: right;
+}
+
+.cover-meta-value {
+  font-weight: 600;
+  color: #111;
+}
+
+.cover-stamp-area {
+  width: 80px;
+  height: 80px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 9pt;
+  margin-top: 16px;
+  align-self: flex-end;
+}
+
+/* === BODY PAGE === */
+.body-page {
+  padding: 28mm 15mm 15mm 20mm;
+}
+
+/* 결재란 */
+.approval-block {
+  position: absolute;
+  top: 20px;
+  right: 15mm;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 9pt;
+}
+
+.approval-table {
+  border-collapse: collapse;
+}
+
+.approval-table td {
+  border: 1px solid #333;
+  text-align: center;
+  padding: 0;
+}
+
+.approval-role {
+  padding: 3px 10px;
+  background: #f0f2f5;
+  font-weight: 600;
+  font-size: 8.5pt;
+  border-bottom: 1px solid #333;
+}
+
+.approval-sign {
+  width: 70px;
+  height: 50px;
+  vertical-align: top;
+  padding: 4px;
+}
+
+.approval-date {
+  padding: 2px 4px;
+  font-size: 7.5pt;
+  color: #555;
+  border-top: 1px solid #333;
+  text-align: center;
+}
+
+/* 문서 헤더 정보 */
+.doc-header-info {
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.doc-info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  font-size: 11pt;
+}
+
+.doc-info-label {
+  min-width: 72px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.doc-info-colon {
+  margin-right: 8px;
+}
+
+.doc-info-value {
+  flex: 1;
+}
+
+.doc-divider {
+  border: none;
+  border-top: 1.5px solid #333;
+  margin: 12px 0;
+}
+
+.doc-divider-thin {
+  border: none;
+  border-top: 0.5px solid #999;
+  margin: 8px 0;
+}
+
+/* 제목 */
+.doc-subject-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  font-size: 12pt;
+}
+
+.doc-subject-label {
+  min-width: 72px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.doc-subject-value {
+  font-weight: 700;
+  flex: 1;
+}
+
+/* 연속 페이지 상단 표시 */
+.doc-page-continued {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9pt;
+  color: #888;
+  font-family: 'Noto Sans KR', sans-serif;
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid #ccc;
+  margin-bottom: 12px;
+}
+
+.doc-page-num {
+  letter-spacing: 2px;
+}
+
+/* 본문 */
+.doc-body-content {
+  font-size: 11.5pt;
+  line-height: 2;
+  word-break: keep-all;
+  white-space: pre-wrap; /* 일반 텍스트의 개행 문자(\n) 및 공백 줄바꿈 반영 보장 */
+  padding: 12px 0;
+}
+
+/* 본문 HTML 요소 스타일 (WYSIWYG → 문서 렌더링) */
+.doc-body-content h1 { font-size: 15pt; font-weight: 700; margin: 14px 0 6px; }
+.doc-body-content h2 { font-size: 13pt; font-weight: 700; margin: 12px 0 4px; }
+.doc-body-content h3 { font-size: 11.5pt; font-weight: 600; margin: 10px 0 4px; }
+.doc-body-content p  { margin: 0 0 6px; min-height: 1.8em; }
+.doc-body-content ul,
+.doc-body-content ol { padding-left: 22px; margin: 4px 0 8px; }
+.doc-body-content li { margin: 2px 0; }
+.doc-body-content strong { font-weight: 700; }
+.doc-body-content em    { font-style: italic; }
+.doc-body-content u     { text-decoration: underline; }
+.doc-body-content s     { text-decoration: line-through; }
+.doc-body-content hr    { border: none; border-top: 0.5px solid #999; margin: 10px 0; }
+
+/* 본문 표 — 행정 문서 스타일 */
+.doc-body-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 10.5pt;
+  line-height: 1.6;
+}
+.doc-body-content th,
+.doc-body-content td {
+  border: 1px solid #333;
+  padding: 6px 10px;
+}
+.doc-body-content th {
+  background: #f0f2f5;
+  font-weight: 700;
+  text-align: center;
+}
+.doc-body-content td {
+  text-align: left;
+}
+
+/* 붙임 */
+.doc-attachments {
+  margin-top: 16px;
+  font-size: 11pt;
+}
+
+.doc-attachment-label {
+  font-weight: 700;
+}
+
+/* 보존기간 */
+.doc-retention {
+  margin-top: 12px;
+  font-size: 10pt;
+  color: #444;
+}
+
+/* 발신명의 */
+.doc-footer {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 12pt;
+}
+
+.doc-sender-name {
+  font-weight: 700;
+  font-size: 13pt;
+}
+
+.doc-seal {
+  width: 60px;
+  height: 60px;
+  border: 1.5px solid #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bbb;
+  font-size: 8pt;
+  margin-top: 4px;
+}
+
+/* 기안자/검토자 */
+.doc-drafter-row {
+  position: absolute;
+  bottom: 15mm;
+  left: 20mm;
+  right: 15mm;
+  border-top: 1px solid #333;
+  padding-top: 8px;
+  display: flex;
+  gap: 40px;
+  font-size: 9pt;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.doc-drafter-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.doc-drafter-role {
+  font-weight: 600;
+  color: #555;
+}
+
+.doc-drafter-name {
+  font-size: 10pt;
+}
+
+/* === CLOSING PAGE === */
+.closing-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.closing-logo {
+  max-height: 72px;
+  max-width: 280px;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+.closing-statement {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.6;
+  font-family: 'Noto Serif KR', serif;
+}
+
+.closing-org {
+  color: #1a3a6b;
+  border-bottom: 2px solid #1a3a6b;
+  padding-bottom: 2px;
+}
+
+.closing-sub {
+  font-size: 11pt;
+  color: #888;
+  font-family: 'Noto Sans KR', sans-serif;
+  letter-spacing: 1px;
+}
+
+.closing-divider {
+  width: 60px;
+  border-top: 1.5px solid #ccc;
+}
+
+.closing-date {
+  font-size: 10pt;
+  color: #aaa;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* ============================================
+   PDF export
+   ============================================ */
+#document-export .a4-page {
+  box-shadow: none;
+  page-break-after: always;  /* 구버전 호환 */
+  break-after: page;
+}
+
+/* 측정 div는 App 루트에 있으므로 PDF 내에 포함되지 않음 */

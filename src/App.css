@@ -1,0 +1,839 @@
+/* ============================================
+   App Layout
+   ============================================ */
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.app-header {
+  background: var(--color-primary);
+  color: white;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.app-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-icon {
+  opacity: 0.9;
+}
+
+.app-title {
+  font-size: 15pt;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* ── Body ── */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Form Panel ── */
+.form-panel {
+  width: 420px;
+  min-width: 320px;
+  max-width: 850px;
+  resize: horizontal;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f8f9fb;
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.form-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Sections ── */
+.form-section {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+}
+
+.api-section {
+  border-color: #d4e4f7;
+  background: #f0f7ff;
+}
+
+.ai-attach-section {
+  border-color: #d1fae5;
+  background: #f0fdf4;
+}
+
+.section-title {
+  font-size: 11pt;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.section-icon {
+  font-size: 13pt;
+}
+
+.section-desc {
+  font-size: 9.5pt;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.toggle-switch-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.toggle-switch-text {
+  font-size: 9pt;
+  color: var(--color-text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 38px;
+  height: 20px;
+  background: #d1d5db;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.toggle-switch.on {
+  background: var(--color-primary);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.on .toggle-thumb {
+  left: 20px;
+}
+
+.toggleable-fields {
+  transition: opacity 0.2s;
+}
+
+.toggleable-fields.dimmed {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── Fields ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.field-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+label {
+  font-size: 9.5pt;
+  font-weight: 600;
+  color: #374151;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.required {
+  color: var(--color-accent);
+}
+
+.input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 10pt;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--color-text);
+  background: white;
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(40, 86, 163, 0.1);
+}
+
+.input-lg {
+  font-size: 11pt;
+  font-weight: 600;
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 10pt;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--color-text);
+  background: white;
+  resize: vertical;
+  min-height: 180px;
+  line-height: 1.7;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.textarea:focus {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(40, 86, 163, 0.1);
+}
+
+.input-with-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.input-with-toggle .input {
+  flex: 1;
+}
+
+.toggle-btn {
+  padding: 7px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  background: white;
+  font-size: 9pt;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  white-space: nowrap;
+}
+
+.toggle-btn:hover {
+  background: #f3f4f6;
+}
+
+/* ── Radio groups ── */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10pt;
+  font-weight: 400;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.radio-label input[type='radio'] {
+  accent-color: var(--color-primary);
+}
+
+/* ── Retention chips ── */
+.retention-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.retention-chip {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.retention-chip input {
+  display: none;
+}
+
+.retention-chip span {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--color-border);
+  font-size: 10pt;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--color-text-muted);
+  background: white;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.retention-chip:hover span {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary-light);
+}
+
+.retention-chip.active span {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+}
+
+/* ── File upload ── */
+.file-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px;
+  border: 2px dashed #86efac;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: #16a34a;
+  font-size: 10pt;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: white;
+  transition: background 0.15s;
+  margin-bottom: 12px;
+}
+
+.file-drop-zone:hover {
+  background: #f0fdf4;
+}
+
+.upload-icon {
+  color: #16a34a;
+  opacity: 0.7;
+}
+
+.file-hint {
+  font-size: 8.5pt;
+  color: #6b7280;
+}
+
+.file-attached {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: white;
+  border: 1.5px solid #86efac;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #16a34a;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 10pt;
+  font-weight: 600;
+  font-family: 'Noto Sans KR', sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.file-size {
+  font-size: 9pt;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.btn-remove-file {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.btn-remove-file:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ── Buttons ── */
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: white;
+  color: var(--color-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 11pt;
+  font-weight: 600;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-export:hover:not(:disabled) {
+  background: #f0f7ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-export:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-ai {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #16a34a, #059669);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11pt;
+  font-weight: 600;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+
+.btn-ai:hover:not(:disabled) {
+  background: linear-gradient(135deg, #15803d, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.btn-ai:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-error {
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 9.5pt;
+  color: #dc2626;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin-bottom: 8px;
+}
+
+/* ── Preview Panel ── */
+.preview-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: white;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.preview-label {
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--color-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.preview-hint {
+  font-size: 9pt;
+  color: var(--color-text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 16px;
+  display: block;
+}
+
+/* ── 측정 div: 트랜스폼 바깥, viewport 기준 고정, 문서와 동일 폰트/너비 ── */
+.body-measure-root {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  width: 661px;   /* A4 본문 너비: 794 - 20mm(76px) - 15mm(57px) */
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+  font-family: 'Chiron Sung HK', serif;
+}
+
+/* scale-outer: scaled 크기만 flow에 반영, wrapper는 absolute로 분리 */
+.preview-scale-outer {
+  overflow: hidden;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  /* width/height는 ScaledPreview에서 동적으로 적용 */
+}
+
+.preview-scale-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 794px;
+  transform-origin: top left;
+  /* scale은 ScaledPreview에서 동적으로 적용 */
+}
+
+/* ── Mobile: 작성 → 미리보기 전체화면 ── */
+@media (max-width: 768px) {
+  .app-layout {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .app-header {
+    padding: 0 16px;
+  }
+
+  .app-title {
+    font-size: 13pt;
+  }
+
+  .btn-export-desktop {
+    display: none;
+  }
+
+  .app-body {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .form-panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-shrink: 1;
+    resize: none;
+    border-right: none;
+  }
+
+  .form-panel.mobile-hidden {
+    display: none;
+  }
+
+  /* 작성 화면: 미리보기 숨김 (mobile-fullscreen일 때만 표시) */
+  .preview-panel {
+    display: none;
+  }
+
+  .preview-panel.mobile-fullscreen {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+  }
+
+  .field-grid-2,
+  .field-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .file-name {
+    max-width: none;
+    flex: 1;
+  }
+
+  .preview-scroll {
+    padding: 16px 12px;
+  }
+
+  .preview-toolbar {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .preview-hint {
+    display: none;
+  }
+
+  .preview-label {
+    flex: 1;
+  }
+
+  .btn-back-mobile {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 6px;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--color-text);
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .btn-back-mobile:active {
+    background: #e5e7eb;
+  }
+
+  .btn-export-mobile {
+    margin-left: auto;
+    padding: 6px 12px;
+    font-size: 10pt;
+    background: var(--color-primary);
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .btn-export-mobile:hover:not(:disabled) {
+    background: var(--color-primary-light);
+    color: white;
+  }
+
+  .btn-export-mobile .btn-spinner-dark {
+    border-color: rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+  }
+
+  .mobile-preview-sticky {
+    position: sticky;
+    bottom: 0;
+    flex-shrink: 0;
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: linear-gradient(to top, #f8f9fb 70%, rgba(248, 249, 251, 0.95));
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    z-index: 20;
+  }
+
+  .btn-preview-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 12pt;
+    font-weight: 600;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-preview-mobile:active {
+    background: var(--color-primary-light);
+  }
+}
+
+/* 데스크톱 전용: 모바일 UI 숨김 */
+@media (min-width: 769px) {
+  .btn-back-mobile,
+  .btn-export-mobile {
+    display: none;
+  }
+
+  .mobile-preview-sticky {
+    display: none;
+  }
+}
+
+/* ============================================
+   High-Precision Native Print Styles
+   ============================================ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  
+  body, html, #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* 부모 컨테이너의 100vh 스크롤 고정 및 오버플로우 제한을 전부 풀고 기본 블록 흐름으로 전환 */
+  .app-layout {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  .app-header,
+  .form-panel,
+  .preview-toolbar,
+  .body-measure-root,
+  .mobile-preview-sticky,
+  header,
+  aside {
+    display: none !important;
+  }
+
+  .app-body {
+    display: block !important;
+    overflow: visible !important;
+    position: static !important;
+    height: auto !important;
+  }
+
+  .preview-panel {
+    background: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    height: auto !important;
+  }
+
+  .preview-scroll {
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+  }
+
+  .preview-scale-outer {
+    width: 794px !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    display: block !important;
+    position: static !important;
+  }
+
+  .preview-scale-wrapper {
+    transform: none !important;
+    display: block !important;
+    height: auto !important;
+    position: static !important;
+    width: auto !important;
+  }
+
+  .doc-pages-wrapper {
+    gap: 0 !important;
+    display: block !important; /* flex 레이아웃 해제: 인쇄 브라우저의 페이지 분할 버그 방지 */
+    height: auto !important;
+  }
+
+  .a4-page {
+    box-shadow: none !important;
+    margin: 0 !important;
+    border: none !important;
+    width: 794px !important;
+    height: 1123px !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    position: relative !important;
+    display: block !important; /* flex-shrink 해제 및 block 레이아웃 보장 */
+  }
+}

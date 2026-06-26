@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+*.local
+.DS_Store
+보고서.pdf
+보고서.pdf.pdf
+보고서2.pdf
+보고서3.pdf
+보고서4.pdf
+bug.jpeg
