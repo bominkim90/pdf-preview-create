@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { marked } from 'marked';
 import AppVersionBadge from './components/AppVersionBadge';
 import DocumentPreview from './components/DocumentPreview';
 import RichEditor from './components/RichEditor';
+import { useAuth } from './contexts/AuthContext';
 import { deleteDocument, getDocumentById, saveDocument } from './api/documents';
 import { createInitialFormData, mergeLoadedFormData, CLOSING_PAGE_STYLE_OPTIONS } from './constants/documentSchema';
 import { TEMPLATE_OPTIONS, isRiskGuideTemplate } from './templates/registry';
@@ -15,7 +16,9 @@ import {
 import { isSupabaseConfigured } from './lib/supabase';
 import { generateReportFromFile } from './utils/aiHelper';
 import { exportToPDF } from './utils/pdfExport';
+import { signOut } from './lib/auth';
 import './document.css';
+import './pages/AuthPage.css';
 import './App.css';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -344,8 +347,11 @@ const CLASSIFICATION_OPTIONS = ['일반문서', '대외비', '비밀', '기밀']
 export default function App() {
   const { id: routeDocumentId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, profile } = useAuth();
   const [data, setData] = useState(() => createInitialFormData());
   const [documentId, setDocumentId] = useState(null);
+  const [loadedAuthorId, setLoadedAuthorId] = useState(undefined);
   const [isLoadingDoc, setIsLoadingDoc] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -362,11 +368,29 @@ export default function App() {
   const previewActive = !isMobile || mobileView === 'preview';
 
   const isRiskGuide = isRiskGuideTemplate(data.templateId);
+  const isGuestMode = location.pathname === '/guest';
+  const isReadOnlyView = Boolean(
+    routeDocumentId && loadedAuthorId !== undefined && user && loadedAuthorId !== user.id
+  );
+  const canSaveToDb = isSupabaseConfigured() && !isReadOnlyView && !isGuestMode && user;
 
   useEffect(() => {
     if (!routeDocumentId) {
+      const imported = location.state?.importFormData;
+      if (imported) {
+        setData(mergeLoadedFormData(imported));
+        setDocumentId(null);
+        setLoadedAuthorId(undefined);
+        setLoadError('');
+        setAttachedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        navigate(location.pathname, { replace: true, state: {} });
+        return;
+      }
+
       setData(createInitialFormData());
       setDocumentId(null);
+      setLoadedAuthorId(undefined);
       setLoadError('');
       setAttachedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -382,12 +406,14 @@ export default function App() {
     setIsLoadingDoc(true);
     setLoadError('');
     setSaveNotice(null);
+    setLoadedAuthorId(undefined);
 
     getDocumentById(routeDocumentId)
       .then((doc) => {
         if (cancelled) return;
         setData(mergeLoadedFormData(doc.form_data));
         setDocumentId(doc.id);
+        setLoadedAuthorId(doc.author_id ?? null);
         setAttachedFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
       })
@@ -403,7 +429,24 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [routeDocumentId]);
+  }, [routeDocumentId, location.state, location.pathname, navigate]);
+
+  const handleCopyAsNewDocument = () => {
+    navigate('/new', {
+      state: {
+        importFormData: mergeLoadedFormData(data),
+      },
+    });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/login', { replace: true });
+    } catch (err) {
+      setSaveNotice({ type: 'error', message: err?.message || '로그아웃에 실패했습니다.' });
+    }
+  };
 
   useEffect(() => {
     if (!isMobile) setMobileView('form');
@@ -505,7 +548,7 @@ export default function App() {
       pdfError = err?.message || 'PDF 생성 중 오류가 발생했습니다.';
     }
 
-    if (isSupabaseConfigured()) {
+    if (canSaveToDb) {
       try {
         const result = await saveDocument({ documentId, formData: data });
         setDocumentId(result.id);
@@ -533,6 +576,16 @@ export default function App() {
         type: 'error',
         message: `PDF: ${pdfError} / DB: ${dbError}`,
       });
+    } else if (pdfOk && isReadOnlyView) {
+      setSaveNotice({
+        type: 'warning',
+        message: 'PDF만 저장되었습니다. (다른 사용자 문서는 DB에 저장할 수 없습니다)',
+      });
+    } else if (pdfOk && isGuestMode) {
+      setSaveNotice({
+        type: 'success',
+        message: 'PDF만 저장되었습니다. (DB에는 저장되지 않습니다)',
+      });
     } else if (pdfOk && !isSupabaseConfigured()) {
       setSaveNotice({
         type: 'warning',
@@ -546,7 +599,7 @@ export default function App() {
   };
 
   const handleDeleteDocument = async () => {
-    if (!documentId) return;
+    if (!documentId || isReadOnlyView) return;
 
     const label = data.title?.trim() || '제목 없음';
     if (!window.confirm(`「${label}」 문서를 삭제할까요?\n삭제 후에는 되돌릴 수 없습니다.`)) {
@@ -582,7 +635,7 @@ export default function App() {
     setSaveNotice(null);
     setAttachedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
-    if (routeDocumentId) navigate('/', { replace: true });
+    if (routeDocumentId) navigate('/new', { replace: true });
 
     if (isRiskGuideTemplate(nextId)) {
       setData(createRiskGuideFormData());
@@ -622,20 +675,41 @@ export default function App() {
           </svg>
           <span className="app-title">보고서 작성 시스템</span>
           <AppVersionBadge />
-          {documentId && (
+          {documentId && !isGuestMode && (
             <span className="doc-saved-badge" title={documentId}>
               저장됨
             </span>
           )}
         </div>
         <div className="app-header-right">
-          <Link to="/documents" className="btn-header-nav">
-            문서 목록
-          </Link>
-          <Link to="/" className="btn-header-nav">
-            새 문서
-          </Link>
-          {isRiskGuide && (
+          {isGuestMode ? (
+            <>
+              <Link to="/" className="btn-header-nav">
+                홈
+              </Link>
+              <Link to="/login" className="btn-header-nav">
+                로그인
+              </Link>
+            </>
+          ) : (
+            <>
+              {profile?.username && (
+                <span className="btn-header-nav" style={{ cursor: 'default', opacity: 0.9 }}>
+                  {profile.username}
+                </span>
+              )}
+              <Link to="/documents" className="btn-header-nav">
+                문서 목록
+              </Link>
+              <Link to="/new" className="btn-header-nav">
+                새 문서
+              </Link>
+              <button type="button" className="btn-header-nav" onClick={handleLogout}>
+                로그아웃
+              </button>
+            </>
+          )}
+          {isRiskGuide && !isReadOnlyView && (
             <>
               <button
                 type="button"
@@ -655,7 +729,7 @@ export default function App() {
               </button>
             </>
           )}
-          {documentId && (
+          {documentId && !isReadOnlyView && !isGuestMode && (
             <button
               type="button"
               className="btn-header-nav btn-header-nav-danger"
@@ -688,7 +762,7 @@ export default function App() {
                 <path d="M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             )}
-            {isExporting ? '저장 중...' : 'PDF로 저장'}
+            {isExporting ? '저장 중...' : isGuestMode || isReadOnlyView ? 'PDF로 저장' : 'PDF로 저장'}
           </button>
         </div>
       </header>
@@ -698,6 +772,11 @@ export default function App() {
         </div>
       )}
 
+      {isGuestMode && (
+        <div className="guest-banner" role="status">
+          비로그인 모드입니다. PDF만 저장할 수 있으며 DB에는 저장되지 않습니다.
+        </div>
+      )}
       {isLoadingDoc && (
         <div className="editor-loading-banner" role="status">
           문서를 불러오는 중...
@@ -708,12 +787,26 @@ export default function App() {
           {loadError}
         </div>
       )}
+      {isReadOnlyView && (
+        <div className="readonly-banner" style={{ margin: '0 16px' }}>
+          <span>
+            다른 사용자의 문서입니다. 수정할 수 없으며, 내용을 복사해 새 문서로 저장할 수
+            있습니다.
+          </span>
+          <div className="readonly-banner-actions">
+            <button type="button" className="btn-readonly-copy" onClick={handleCopyAsNewDocument}>
+              내 계정으로 새 문서 만들기
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="app-body">
         {/* ── 좌측 폼 패널 ── */}
         <aside
           className={`form-panel ${isMobile && mobileView === 'preview' ? 'mobile-hidden' : ''}`}
         >
+          <fieldset className="form-fieldset" disabled={isReadOnlyView}>
           <div className="form-scroll">
             <section className="form-section">
               <h3 className="section-title">
@@ -1020,6 +1113,7 @@ export default function App() {
                 <RichEditor
                   value={data.body}
                   onChange={(html) => setData((prev) => ({ ...prev, body: html }))}
+                  readOnly={isReadOnlyView}
                   placeholder={
                     isRiskGuide
                       ? '본문을 입력하세요. 표·목록·형광펜 등을 사용할 수 있습니다.'
@@ -1148,6 +1242,7 @@ export default function App() {
               </>
             )}
           </div>
+          </fieldset>
 
           {isMobile && (
             <div className="mobile-preview-sticky">

@@ -1,22 +1,62 @@
 import { getSupabase } from '../lib/supabase';
 import { getDocumentTitle } from '../constants/documentSchema';
 
-export async function listDocuments() {
+async function requireUserId() {
   const supabase = getSupabase();
-  const { data, error } = await supabase
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error) throw error;
+  if (!user) throw new Error('로그인이 필요합니다.');
+  return user.id;
+}
+
+async function attachAuthorUsernames(rows) {
+  if (!rows?.length) return [];
+
+  const authorIds = [...new Set(rows.map((row) => row.author_id).filter(Boolean))];
+  let profileMap = {};
+
+  if (authorIds.length) {
+    const supabase = getSupabase();
+    const { data: profiles, error } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', authorIds);
+
+    if (error) throw error;
+    profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.username]));
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    author_username: row.author_id ? profileMap[row.author_id] ?? null : null,
+  }));
+}
+
+export async function listDocuments({ mineOnly = false } = {}) {
+  const supabase = getSupabase();
+  let query = supabase
     .from('documents')
-    .select('id, title, template_id, created_at, updated_at')
+    .select('id, title, template_id, author_id, created_at, updated_at')
     .order('updated_at', { ascending: false });
 
+  if (mineOnly) {
+    const userId = await requireUserId();
+    query = query.eq('author_id', userId);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
-  return data ?? [];
+  return attachAuthorUsernames(data ?? []);
 }
 
 export async function getDocumentById(id) {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('documents')
-    .select('id, title, template_id, form_data, created_at, updated_at')
+    .select('id, title, template_id, form_data, author_id, created_at, updated_at')
     .eq('id', id)
     .single();
 
@@ -26,6 +66,7 @@ export async function getDocumentById(id) {
 
 export async function saveDocument({ documentId, formData }) {
   const supabase = getSupabase();
+  const userId = await requireUserId();
   const templateId = formData.templateId || 'report-default';
   const title = getDocumentTitle(formData);
   const payload = {
@@ -53,6 +94,7 @@ export async function saveDocument({ documentId, formData }) {
       title: payload.title,
       template_id: payload.template_id,
       form_data: payload.form_data,
+      author_id: userId,
     })
     .select('id')
     .single();
@@ -64,6 +106,5 @@ export async function saveDocument({ documentId, formData }) {
 export async function deleteDocument(id) {
   const supabase = getSupabase();
   const { error } = await supabase.from('documents').delete().eq('id', id);
-
   if (error) throw error;
 }

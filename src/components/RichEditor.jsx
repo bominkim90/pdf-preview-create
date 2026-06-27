@@ -141,12 +141,13 @@ const ToolbarStepper = ({ onDecrease, onIncrease, canDecrease, decreaseTitle, in
   </div>
 );
 
-export default function RichEditor({ value, onChange, placeholder }) {
+export default function RichEditor({ value, onChange, placeholder, readOnly = false }) {
   const isExternalUpdate = useRef(false);
   const savedSelection = useRef(null);
   const [, setToolbarTick] = useState(0);
 
   const editor = useEditor({
+    editable: !readOnly,
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,
@@ -197,6 +198,11 @@ export default function RichEditor({ value, onChange, placeholder }) {
       editor.off('transaction', refreshToolbar);
     };
   }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(!readOnly);
+  }, [editor, readOnly]);
 
   if (!editor) return null;
 
@@ -277,6 +283,7 @@ export default function RichEditor({ value, onChange, placeholder }) {
 
   return (
     <div className="rich-editor">
+      {!readOnly && (
       <div className="re-toolbar">
         <ToolbarBtn
           onClick={() => editor.chain().focus().undo().run()}
@@ -571,6 +578,7 @@ export default function RichEditor({ value, onChange, placeholder }) {
           </svg>
         </ToolbarBtn>
       </div>
+      )}
 
       <EditorContent editor={editor} className="re-editor-wrap" />
     </div>

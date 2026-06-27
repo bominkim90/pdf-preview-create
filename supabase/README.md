@@ -64,3 +64,17 @@ supabase migration repair 20260626120000 --status applied
 | `documents.title` | 목록·저장 시 `getDocumentTitle(formData)` |
 | `documents.template_id` | `formData.templateId` (기본 `report-default`) |
 | `documents.form_data` | 폼 전체 JSON |
+| `documents.author_id` | 작성자 (`auth.users.id`) |
+| `profiles.username` | 로그인 아이디 (표시용) |
+
+## Auth (Supabase Dashboard, 1회)
+
+Authentication → Providers → **Email** 활성화  
+Authentication → Settings → **Confirm email** 끄기 (가입 즉시 로그인, 프로토타입용)
+
+## migration 목록
+
+| 파일 | 내용 |
+|------|------|
+| `20260626120000_initial_documents.sql` | documents + anon RLS |
+| `20260627150000_add_auth_and_document_author.sql` | profiles, author_id, authenticated RLS |

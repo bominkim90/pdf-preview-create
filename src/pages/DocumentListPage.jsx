@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AppVersionBadge from '../components/AppVersionBadge';
 import { deleteDocument, listDocuments } from '../api/documents';
+import { useAuth } from '../contexts/AuthContext';
 import { getTemplateLabel } from '../constants/documentSchema';
+import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import './DocumentListPage.css';
+import './AuthPage.css';
 
 function formatDate(iso) {
   if (!iso) return '-';
@@ -19,10 +22,45 @@ function formatDate(iso) {
 
 export default function DocumentListPage() {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [listFilter, setListFilter] = useState('all');
+
+  const loadList = useCallback(async () => {
+    if (!isSupabaseConfigured()) {
+      setError('.env에 Supabase 설정이 필요합니다.');
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const rows = await listDocuments({ mineOnly: listFilter === 'mine' });
+      setDocuments(rows);
+    } catch (err) {
+      setError(err?.message || '문서 목록을 불러오지 못했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [listFilter]);
+
+  useEffect(() => {
+    loadList();
+  }, [loadList]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/login', { replace: true });
+    } catch (err) {
+      setError(err?.message || '로그아웃에 실패했습니다.');
+    }
+  };
 
   const handleDelete = async (e, doc) => {
     e.stopPropagation();
@@ -44,32 +82,7 @@ export default function DocumentListPage() {
     }
   };
 
-  useEffect(() => {
-    if (!isSupabaseConfigured()) {
-      setError('.env에 Supabase 설정이 필요합니다.');
-      setIsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    listDocuments()
-      .then((rows) => {
-        if (!cancelled) setDocuments(rows);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err?.message || '문서 목록을 불러오지 못했습니다.');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const canDelete = (doc) => user?.id && doc.author_id === user.id;
 
   return (
     <div className="list-page">
@@ -79,20 +92,41 @@ export default function DocumentListPage() {
           <AppVersionBadge />
           <span className="list-count">{documents.length}건</span>
         </div>
-        <div className="list-header-right">
-          <Link to="/" className="btn-list-nav btn-list-nav-primary">
+        <div className="list-header-right list-user-menu">
+          {profile?.username && <span className="list-username">{profile.username}</span>}
+          <Link to="/new" className="btn-list-nav btn-list-nav-primary">
             새 문서 작성
           </Link>
+          <button type="button" className="btn-list-logout" onClick={handleLogout}>
+            로그아웃
+          </button>
         </div>
       </header>
 
       <main className="list-main">
+        <div className="list-filter">
+          <button
+            type="button"
+            className={`list-filter-btn${listFilter === 'all' ? ' active' : ''}`}
+            onClick={() => setListFilter('all')}
+          >
+            전체 보기
+          </button>
+          <button
+            type="button"
+            className={`list-filter-btn${listFilter === 'mine' ? ' active' : ''}`}
+            onClick={() => setListFilter('mine')}
+          >
+            내 문서만
+          </button>
+        </div>
+
         {isLoading && <p className="list-message">목록을 불러오는 중...</p>}
         {!isLoading && error && <p className="list-message list-error">{error}</p>}
         {!isLoading && !error && documents.length === 0 && (
           <div className="list-empty">
-            <p>저장된 문서가 없습니다.</p>
-            <Link to="/" className="btn-list-nav btn-list-nav-primary">
+            <p>{listFilter === 'mine' ? '내 문서가 없습니다.' : '저장된 문서가 없습니다.'}</p>
+            <Link to="/new" className="btn-list-nav btn-list-nav-primary">
               첫 문서 작성하기
             </Link>
           </div>
@@ -103,6 +137,7 @@ export default function DocumentListPage() {
               <thead>
                 <tr>
                   <th>제목</th>
+                  <th>작성자</th>
                   <th>템플릿</th>
                   <th>작성일</th>
                   <th>수정일</th>
@@ -113,18 +148,23 @@ export default function DocumentListPage() {
                 {documents.map((doc) => (
                   <tr key={doc.id} className="list-row" onClick={() => navigate(`/edit/${doc.id}`)}>
                     <td className="list-cell-title">{doc.title || '제목 없음'}</td>
+                    <td className="list-cell-muted">{doc.author_username || '(미지정)'}</td>
                     <td>{getTemplateLabel(doc.template_id)}</td>
                     <td>{formatDate(doc.created_at)}</td>
                     <td>{formatDate(doc.updated_at)}</td>
                     <td className="list-cell-actions">
-                      <button
-                        type="button"
-                        className="btn-list-delete"
-                        disabled={deletingId === doc.id}
-                        onClick={(e) => handleDelete(e, doc)}
-                      >
-                        {deletingId === doc.id ? '삭제 중...' : '삭제'}
-                      </button>
+                      {canDelete(doc) ? (
+                        <button
+                          type="button"
+                          className="btn-list-delete"
+                          disabled={deletingId === doc.id}
+                          onClick={(e) => handleDelete(e, doc)}
+                        >
+                          {deletingId === doc.id ? '삭제 중...' : '삭제'}
+                        </button>
+                      ) : (
+                        <span className="list-cell-muted">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
