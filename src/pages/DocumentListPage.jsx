@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import AppVersionBadge from '../components/AppVersionBadge'
 import { deleteDocument, listDocuments } from '../api/documents'
 import { getTemplateLabel } from '../constants/documentSchema'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -75,6 +76,7 @@ export default function DocumentListPage() {
       <header className="list-header">
         <div className="list-header-left">
           <h1 className="list-title">저장된 문서</h1>
+          <AppVersionBadge />
           <span className="list-count">{documents.length}건</span>
         </div>
         <div className="list-header-right">

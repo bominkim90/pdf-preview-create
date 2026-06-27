@@ -1,0 +1,11 @@
+.app-version-badge {
+  font-size: 9pt;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(251, 191, 36, 0.25);
+  color: #fef3c7;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  white-space: nowrap;
+  font-family: 'Noto Sans KR', sans-serif;
+}

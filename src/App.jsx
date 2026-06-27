@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { marked } from 'marked'
+import AppVersionBadge from './components/AppVersionBadge'
 import DocumentPreview from './components/DocumentPreview'
 import RichEditor from './components/RichEditor'
 import { deleteDocument, getDocumentById, saveDocument } from './api/documents'
@@ -596,6 +597,7 @@ export default function App() {
             <line x1="7" y1="16" x2="13" y2="16" stroke="white" strokeWidth="1.5" />
           </svg>
           <span className="app-title">보고서 작성 시스템</span>
+          <AppVersionBadge />
           {documentId && (
             <span className="doc-saved-badge" title={documentId}>
               저장됨
