@@ -35,6 +35,20 @@ export function getProfileDisplayName(profile) {
   return profile.nickname?.trim() || null;
 }
 
+function deriveNickname(user) {
+  const fromMeta = user.user_metadata?.nickname?.trim();
+  if (fromMeta && validateNickname(fromMeta) === null) {
+    return fromMeta;
+  }
+
+  const localPart = (user.email?.split('@')[0] ?? 'user').trim();
+  if (validateNickname(localPart) === null) {
+    return localPart;
+  }
+
+  return '사용자';
+}
+
 export function loginIdToEmail(loginId) {
   return `${loginId.trim().toLowerCase()}@${AUTH_EMAIL_DOMAIN}`;
 }
@@ -48,6 +62,38 @@ export async function fetchProfile(userId) {
     .maybeSingle();
 
   if (error) throw error;
+  return data;
+}
+
+export async function ensureProfile(user) {
+  if (!user?.id) return null;
+
+  const existing = await fetchProfile(user.id);
+  if (existing) return existing;
+
+  const email = (user.email ?? '').trim().toLowerCase();
+  if (!email) {
+    throw new Error('계정 이메일 정보를 확인할 수 없습니다.');
+  }
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert({
+      id: user.id,
+      email,
+      nickname: deriveNickname(user),
+      role: PROFILE_ROLE.USER,
+    })
+    .select('id, email, nickname, role, created_at')
+    .single();
+
+  if (error) {
+    if (error.code === '23505') {
+      return fetchProfile(user.id);
+    }
+    throw error;
+  }
   return data;
 }
 

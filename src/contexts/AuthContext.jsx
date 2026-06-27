@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { fetchProfile } from '../lib/auth';
+import { ensureProfile } from '../lib/auth';
 import { getSupabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
@@ -32,14 +32,14 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const userId = session?.user?.id;
-    if (!userId) {
+    const user = session?.user;
+    if (!user) {
       setProfile(null);
       return;
     }
 
     let cancelled = false;
-    fetchProfile(userId)
+    ensureProfile(user)
       .then((data) => {
         if (!cancelled) setProfile(data);
       })
@@ -53,15 +53,15 @@ export function AuthProvider({ children }) {
   }, [session?.user?.id]);
 
   const refreshProfile = useCallback(async () => {
-    const userId = session?.user?.id;
-    if (!userId) {
+    const user = session?.user;
+    if (!user) {
       setProfile(null);
       return null;
     }
-    const data = await fetchProfile(userId);
+    const data = await ensureProfile(user);
     setProfile(data);
     return data;
-  }, [session?.user?.id]);
+  }, [session?.user]);
 
   const value = useMemo(
     () => ({

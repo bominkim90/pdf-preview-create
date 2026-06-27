@@ -97,6 +97,34 @@
   flex-shrink: 0;
 }
 
+.editor-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.editor-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-banner-close {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.55;
+  color: inherit;
+}
+
+.editor-banner-close:hover {
+  opacity: 1;
+}
+
 .editor-loading-banner {
   background: #eff6ff;
   color: #1d4ed8;
