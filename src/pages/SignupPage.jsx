@@ -8,6 +8,7 @@ export default function SignupPage() {
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useAuth();
   const [username, setUsername] = useState('');
+  const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState('');
@@ -36,7 +37,7 @@ export default function SignupPage() {
 
     setSubmitting(true);
     try {
-      await signUpWithUsername({ username, password });
+      await signUpWithUsername({ username, nickname, password });
       navigate('/documents', { replace: true });
     } catch (err) {
       setError(err?.message || '회원가입에 실패했습니다.');
@@ -49,7 +50,7 @@ export default function SignupPage() {
     <div className="auth-page">
       <div className="auth-card">
         <h1 className="auth-title">회원가입</h1>
-        <p className="auth-subtitle">아이디와 비밀번호를 설정하세요.</p>
+        <p className="auth-subtitle">아이디, 닉네임, 비밀번호를 설정하세요.</p>
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-field">
             <label htmlFor="signup-username">아이디</label>
@@ -64,6 +65,17 @@ export default function SignupPage() {
               />
               <span className="auth-username-suffix">@{AUTH_EMAIL_DOMAIN}</span>
             </div>
+          </div>
+          <div className="auth-field">
+            <label htmlFor="signup-nickname">닉네임</label>
+            <input
+              id="signup-nickname"
+              type="text"
+              autoComplete="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="한글, 영문, 숫자, _ (2~20자)"
+            />
           </div>
           <div className="auth-field">
             <label htmlFor="signup-password">비밀번호</label>

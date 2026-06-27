@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FilePlusIcon, Loader2Icon, LogOutIcon, Trash2Icon, UserCircleIcon } from 'lucide-react';
 import AppVersionBadge from '../components/AppVersionBadge';
+import HeaderIconButton from '../components/HeaderIconButton';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { deleteDocument, listDocuments } from '../api/documents';
 import { useAuth } from '../contexts/AuthContext';
 import { getTemplateLabel } from '../constants/documentSchema';
-import { signOut } from '../lib/auth';
+import { isMaster, signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import './DocumentListPage.css';
 import './AuthPage.css';
@@ -23,6 +27,7 @@ function formatDate(iso) {
 export default function DocumentListPage() {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const userIsMaster = isMaster(profile);
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,7 +87,8 @@ export default function DocumentListPage() {
     }
   };
 
-  const canDelete = (doc) => user?.id && doc.author_id === user.id;
+  const isOwnDocument = (doc) => user?.id && doc.author_id === user.id;
+  const canDeleteDocument = (doc) => userIsMaster || isOwnDocument(doc);
 
   return (
     <div className="list-page">
@@ -92,14 +98,16 @@ export default function DocumentListPage() {
           <AppVersionBadge />
           <span className="list-count">{documents.length}건</span>
         </div>
-        <div className="list-header-right list-user-menu">
-          {profile?.username && <span className="list-username">{profile.username}</span>}
-          <Link to="/new" className="btn-list-nav btn-list-nav-primary">
-            새 문서 작성
-          </Link>
-          <button type="button" className="btn-list-logout" onClick={handleLogout}>
-            로그아웃
-          </button>
+        <div className="list-header-right list-header-toolbar">
+          <HeaderIconButton label="새 문서" onClick={() => navigate('/new')}>
+            <FilePlusIcon />
+          </HeaderIconButton>
+          <HeaderIconButton label="마이페이지" onClick={() => navigate('/mypage')}>
+            <UserCircleIcon />
+          </HeaderIconButton>
+          <HeaderIconButton label="로그아웃" onClick={handleLogout}>
+            <LogOutIcon />
+          </HeaderIconButton>
         </div>
       </header>
 
@@ -145,29 +153,53 @@ export default function DocumentListPage() {
                 </tr>
               </thead>
               <tbody>
-                {documents.map((doc) => (
-                  <tr key={doc.id} className="list-row" onClick={() => navigate(`/edit/${doc.id}`)}>
-                    <td className="list-cell-title">{doc.title || '제목 없음'}</td>
-                    <td className="list-cell-muted">{doc.author_username || '(미지정)'}</td>
-                    <td>{getTemplateLabel(doc.template_id)}</td>
-                    <td>{formatDate(doc.created_at)}</td>
-                    <td>{formatDate(doc.updated_at)}</td>
-                    <td className="list-cell-actions">
-                      {canDelete(doc) ? (
-                        <button
-                          type="button"
-                          className="btn-list-delete"
-                          disabled={deletingId === doc.id}
-                          onClick={(e) => handleDelete(e, doc)}
-                        >
-                          {deletingId === doc.id ? '삭제 중...' : '삭제'}
-                        </button>
-                      ) : (
-                        <span className="list-cell-muted">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {documents.map((doc) => {
+                  const isOwn = isOwnDocument(doc);
+                  const isDeleting = deletingId === doc.id;
+
+                  return (
+                    <tr
+                      key={doc.id}
+                      className={`list-row${isOwn ? ' list-row-mine' : ''}`}
+                      onClick={() => navigate(`/edit/${doc.id}`)}
+                    >
+                      <td className="list-cell-title">{doc.title || '제목 없음'}</td>
+                      <td className="list-cell-muted">{doc.author_nickname || '(미지정)'}</td>
+                      <td>{getTemplateLabel(doc.template_id)}</td>
+                      <td>{formatDate(doc.created_at)}</td>
+                      <td>{formatDate(doc.updated_at)}</td>
+                      <td className="list-cell-actions">
+                        {canDeleteDocument(doc) ? (
+                          <Tooltip>
+                            <TooltipTrigger
+                              render={
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  className="btn-list-delete-icon"
+                                  disabled={isDeleting}
+                                  aria-label={isDeleting ? '삭제 중...' : '삭제'}
+                                  onClick={(e) => handleDelete(e, doc)}
+                                />
+                              }
+                            >
+                              {isDeleting ? (
+                                <Loader2Icon className="animate-spin" />
+                              ) : (
+                                <Trash2Icon />
+                              )}
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                              {isDeleting ? '삭제 중...' : '삭제'}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <span className="list-cell-muted">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

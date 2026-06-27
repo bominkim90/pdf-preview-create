@@ -33,8 +33,25 @@
 .app-header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
   flex-shrink: 0;
+}
+
+.app-header-toolbar {
+  flex-wrap: nowrap;
+}
+
+.header-username {
+  font-size: 9pt;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-header-nav {

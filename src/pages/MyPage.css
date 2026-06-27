@@ -1,0 +1,44 @@
+.my-page-card {
+  max-width: 440px;
+}
+
+.my-page-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.my-page-header .auth-title {
+  margin-bottom: 0;
+}
+
+.my-page-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.my-page-section:first-of-type {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.my-page-section-title {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.my-page-readonly {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f0f2f5;
+  color: var(--color-text-muted);
+  font-size: 11pt;
+  word-break: break-all;
+}

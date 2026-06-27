@@ -38,7 +38,12 @@
 
 .list-header-right {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+}
+
+.list-header-toolbar {
+  flex-shrink: 0;
 }
 
 .btn-list-nav {
@@ -130,6 +135,14 @@
   background: #f0f7ff;
 }
 
+.list-row-mine {
+  background: #f5f9ff;
+}
+
+.list-row-mine:hover {
+  background: #e8f2ff;
+}
+
 .list-row:last-child td {
   border-bottom: none;
 }
@@ -140,30 +153,21 @@
 }
 
 .list-cell-actions {
-  width: 72px;
-  text-align: right;
+  width: 52px;
+  text-align: center;
 }
 
-.btn-list-delete {
-  padding: 4px 10px;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-  background: #fff;
+.btn-list-delete-icon {
   color: #dc2626;
-  font-size: 9.5pt;
-  font-weight: 600;
-  font-family: 'Noto Sans KR', sans-serif;
-  cursor: pointer;
-  transition: background 0.12s;
 }
 
-.btn-list-delete:hover:not(:disabled) {
+.btn-list-delete-icon:hover:not(:disabled) {
   background: #fee2e2;
+  color: #b91c1c;
 }
 
-.btn-list-delete:disabled {
+.btn-list-delete-icon:disabled {
   opacity: 0.6;
-  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

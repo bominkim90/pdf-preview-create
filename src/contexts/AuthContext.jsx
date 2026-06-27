@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { fetchProfile } from '../lib/auth';
 import { getSupabase } from '../lib/supabase';
 
@@ -52,6 +52,17 @@ export function AuthProvider({ children }) {
     };
   }, [session?.user?.id]);
 
+  const refreshProfile = useCallback(async () => {
+    const userId = session?.user?.id;
+    if (!userId) {
+      setProfile(null);
+      return null;
+    }
+    const data = await fetchProfile(userId);
+    setProfile(data);
+    return data;
+  }, [session?.user?.id]);
+
   const value = useMemo(
     () => ({
       session,
@@ -59,8 +70,9 @@ export function AuthProvider({ children }) {
       profile,
       loading,
       isAuthenticated: Boolean(session),
+      refreshProfile,
     }),
-    [session, profile, loading]
+    [session, profile, loading, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

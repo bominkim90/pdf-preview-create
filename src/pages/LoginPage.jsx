@@ -79,6 +79,9 @@ export default function LoginPage() {
         <p className="auth-footer">
           계정이 없으신가요? <Link to="/signup">회원가입</Link>
         </p>
+        <p className="auth-footer">
+          <Link to="/">비로그인으로 이용하기</Link>
+        </p>
       </div>
     </div>
   );

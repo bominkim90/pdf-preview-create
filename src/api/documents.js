@@ -12,7 +12,7 @@ async function requireUserId() {
   return user.id;
 }
 
-async function attachAuthorUsernames(rows) {
+async function attachAuthorNicknames(rows) {
   if (!rows?.length) return [];
 
   const authorIds = [...new Set(rows.map((row) => row.author_id).filter(Boolean))];
@@ -22,16 +22,18 @@ async function attachAuthorUsernames(rows) {
     const supabase = getSupabase();
     const { data: profiles, error } = await supabase
       .from('profiles')
-      .select('id, username')
+      .select('id, nickname')
       .in('id', authorIds);
 
     if (error) throw error;
-    profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.username]));
+    profileMap = Object.fromEntries(
+      (profiles ?? []).map((p) => [p.id, p.nickname?.trim() || null])
+    );
   }
 
   return rows.map((row) => ({
     ...row,
-    author_username: row.author_id ? profileMap[row.author_id] ?? null : null,
+    author_nickname: row.author_id ? profileMap[row.author_id] ?? null : null,
   }));
 }
 
@@ -49,7 +51,7 @@ export async function listDocuments({ mineOnly = false } = {}) {
 
   const { data, error } = await query;
   if (error) throw error;
-  return attachAuthorUsernames(data ?? []);
+  return attachAuthorNicknames(data ?? []);
 }
 
 export async function getDocumentById(id) {

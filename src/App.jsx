@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { marked } from 'marked';
-import AppVersionBadge from './components/AppVersionBadge';
+import AppHeader from './components/AppHeader';
 import DocumentPreview from './components/DocumentPreview';
 import RichEditor from './components/RichEditor';
 import { useAuth } from './contexts/AuthContext';
@@ -16,7 +17,7 @@ import {
 import { isSupabaseConfigured } from './lib/supabase';
 import { generateReportFromFile } from './utils/aiHelper';
 import { exportToPDF } from './utils/pdfExport';
-import { signOut } from './lib/auth';
+import { isMaster, signOut } from './lib/auth';
 import './document.css';
 import './pages/AuthPage.css';
 import './App.css';
@@ -349,6 +350,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile } = useAuth();
+  const userIsMaster = isMaster(profile);
   const [data, setData] = useState(() => createInitialFormData());
   const [documentId, setDocumentId] = useState(null);
   const [loadedAuthorId, setLoadedAuthorId] = useState(undefined);
@@ -357,7 +359,6 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [saveNotice, setSaveNotice] = useState(null);
   const [aiError, setAiError] = useState('');
   const [attachedFile, setAttachedFile] = useState(null);
   const [mobileView, setMobileView] = useState('form');
@@ -370,7 +371,11 @@ export default function App() {
   const isRiskGuide = isRiskGuideTemplate(data.templateId);
   const isGuestMode = location.pathname === '/guest';
   const isReadOnlyView = Boolean(
-    routeDocumentId && loadedAuthorId !== undefined && user && loadedAuthorId !== user.id
+    routeDocumentId &&
+      loadedAuthorId !== undefined &&
+      user &&
+      loadedAuthorId !== user.id &&
+      !userIsMaster
   );
   const canSaveToDb = isSupabaseConfigured() && !isReadOnlyView && !isGuestMode && user;
 
@@ -405,7 +410,6 @@ export default function App() {
     let cancelled = false;
     setIsLoadingDoc(true);
     setLoadError('');
-    setSaveNotice(null);
     setLoadedAuthorId(undefined);
 
     getDocumentById(routeDocumentId)
@@ -444,7 +448,7 @@ export default function App() {
       await signOut();
       navigate('/login', { replace: true });
     } catch (err) {
-      setSaveNotice({ type: 'error', message: err?.message || '로그아웃에 실패했습니다.' });
+      toast.error(err?.message || '로그아웃에 실패했습니다.');
     }
   };
 
@@ -532,7 +536,6 @@ export default function App() {
 
   const handleExportPDF = async () => {
     setIsExporting(true);
-    setSaveNotice(null);
 
     let pdfOk = false;
     let pdfError = null;
@@ -563,36 +566,21 @@ export default function App() {
     }
 
     if (pdfOk && dbOk) {
-      setSaveNotice({ type: 'success', message: `PDF 저장 및 ${dbMessage}` });
+      toast.success(`PDF 저장 및 ${dbMessage}`);
     } else if (pdfOk && dbError) {
-      setSaveNotice({ type: 'warning', message: `PDF는 저장되었으나 DB 저장 실패: ${dbError}` });
+      toast.warning(`PDF는 저장되었으나 DB 저장 실패: ${dbError}`);
     } else if (!pdfOk && dbOk) {
-      setSaveNotice({
-        type: 'warning',
-        message: `PDF 저장 실패. 문서만 DB에 저장됨: ${dbMessage}`,
-      });
+      toast.warning(`PDF 저장 실패. 문서만 DB에 저장됨: ${dbMessage}`);
     } else if (!pdfOk && dbError) {
-      setSaveNotice({
-        type: 'error',
-        message: `PDF: ${pdfError} / DB: ${dbError}`,
-      });
+      toast.error(`PDF: ${pdfError} / DB: ${dbError}`);
     } else if (pdfOk && isReadOnlyView) {
-      setSaveNotice({
-        type: 'warning',
-        message: 'PDF만 저장되었습니다. (다른 사용자 문서는 DB에 저장할 수 없습니다)',
-      });
+      toast.warning('PDF만 저장되었습니다. (다른 사용자 문서는 DB에 저장할 수 없습니다)');
     } else if (pdfOk && isGuestMode) {
-      setSaveNotice({
-        type: 'success',
-        message: 'PDF만 저장되었습니다. (DB에는 저장되지 않습니다)',
-      });
+      toast.success('PDF만 저장되었습니다. (DB에는 저장되지 않습니다)');
     } else if (pdfOk && !isSupabaseConfigured()) {
-      setSaveNotice({
-        type: 'warning',
-        message: 'PDF는 저장되었으나 Supabase가 설정되지 않아 문서는 DB에 저장되지 않았습니다.',
-      });
+      toast.warning('PDF는 저장되었으나 Supabase가 설정되지 않아 문서는 DB에 저장되지 않았습니다.');
     } else if (pdfError) {
-      setSaveNotice({ type: 'error', message: pdfError });
+      toast.error(pdfError);
     }
 
     setIsExporting(false);
@@ -607,16 +595,12 @@ export default function App() {
     }
 
     setIsDeleting(true);
-    setSaveNotice(null);
 
     try {
       await deleteDocument(documentId);
       navigate('/documents');
     } catch (err) {
-      setSaveNotice({
-        type: 'error',
-        message: err?.message || '문서 삭제에 실패했습니다.',
-      });
+      toast.error(err?.message || '문서 삭제에 실패했습니다.');
     } finally {
       setIsDeleting(false);
     }
@@ -632,7 +616,6 @@ export default function App() {
     }
 
     setDocumentId(null);
-    setSaveNotice(null);
     setAttachedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (routeDocumentId) navigate('/new', { replace: true });
@@ -664,113 +647,20 @@ export default function App() {
           dangerouslySetInnerHTML={{ __html: data.body || '' }}
         />
       </div>
-      {/* ── 상단 바 ── */}
-      <header className="app-header">
-        <div className="app-header-left">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="header-icon">
-            <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="1.5" />
-            <line x1="7" y1="8" x2="17" y2="8" stroke="white" strokeWidth="1.5" />
-            <line x1="7" y1="12" x2="17" y2="12" stroke="white" strokeWidth="1.5" />
-            <line x1="7" y1="16" x2="13" y2="16" stroke="white" strokeWidth="1.5" />
-          </svg>
-          <span className="app-title">보고서 작성 시스템</span>
-          <AppVersionBadge />
-          {documentId && !isGuestMode && (
-            <span className="doc-saved-badge" title={documentId}>
-              저장됨
-            </span>
-          )}
-        </div>
-        <div className="app-header-right">
-          {isGuestMode ? (
-            <>
-              <Link to="/" className="btn-header-nav">
-                홈
-              </Link>
-              <Link to="/login" className="btn-header-nav">
-                로그인
-              </Link>
-            </>
-          ) : (
-            <>
-              {profile?.username && (
-                <span className="btn-header-nav" style={{ cursor: 'default', opacity: 0.9 }}>
-                  {profile.username}
-                </span>
-              )}
-              <Link to="/documents" className="btn-header-nav">
-                문서 목록
-              </Link>
-              <Link to="/new" className="btn-header-nav">
-                새 문서
-              </Link>
-              <button type="button" className="btn-header-nav" onClick={handleLogout}>
-                로그아웃
-              </button>
-            </>
-          )}
-          {isRiskGuide && !isReadOnlyView && (
-            <>
-              <button
-                type="button"
-                className="btn-header-nav"
-                onClick={handleLoadRiskExample}
-                disabled={isExporting || isDeleting}
-              >
-                예시 불러오기
-              </button>
-              <button
-                type="button"
-                className="btn-header-nav"
-                onClick={handleClearRiskContent}
-                disabled={isExporting || isDeleting}
-              >
-                내용 비우기
-              </button>
-            </>
-          )}
-          {documentId && !isReadOnlyView && !isGuestMode && (
-            <button
-              type="button"
-              className="btn-header-nav btn-header-nav-danger"
-              onClick={handleDeleteDocument}
-              disabled={isDeleting || isExporting}
-            >
-              {isDeleting ? '삭제 중...' : '문서 삭제'}
-            </button>
-          )}
-          {saveNotice && (
-            <div className={`save-notice save-notice-${saveNotice.type}`} role="status">
-              {saveNotice.message}
-            </div>
-          )}
-          <button
-            className="btn-export btn-export-desktop"
-            onClick={handleExportPDF}
-            disabled={isExporting}
-          >
-            {isExporting ? (
-              <span className="btn-spinner" />
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 3v13M7 11l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <path d="M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            )}
-            {isExporting ? '저장 중...' : isGuestMode || isReadOnlyView ? 'PDF로 저장' : 'PDF로 저장'}
-          </button>
-        </div>
-      </header>
-      {saveNotice && isMobile && (
-        <div className={`save-notice-mobile save-notice-${saveNotice.type}`} role="status">
-          {saveNotice.message}
-        </div>
-      )}
+      <AppHeader
+        documentId={documentId}
+        isGuestMode={isGuestMode}
+        isReadOnlyView={isReadOnlyView}
+        isRiskGuide={isRiskGuide}
+        profile={profile}
+        isExporting={isExporting}
+        isDeleting={isDeleting}
+        onExportPDF={handleExportPDF}
+        onLogout={handleLogout}
+        onLoadRiskExample={handleLoadRiskExample}
+        onClearRiskContent={handleClearRiskContent}
+        onDeleteDocument={handleDeleteDocument}
+      />
 
       {isGuestMode && (
         <div className="guest-banner" role="status">
