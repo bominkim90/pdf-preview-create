@@ -1,0 +1,10 @@
+# Supabase CLI 설정 — https://supabase.com/docs/guides/cli/config
+# 로컬 DB 없이 원격 db push 만 사용할 경우 이 파일만 있어도 됩니다.
+
+project_id = "pdf-preview-create"
+
+[db]
+major_version = 15
+
+[db.migrations]
+enabled = true

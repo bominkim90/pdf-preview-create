@@ -3,6 +3,8 @@ dist
 .env
 *.local
 .DS_Store
+supabase/.branches
+supabase/.temp
 보고서.pdf
 보고서.pdf.pdf
 보고서2.pdf
