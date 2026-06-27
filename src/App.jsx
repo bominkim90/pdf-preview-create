@@ -5,7 +5,7 @@ import AppVersionBadge from './components/AppVersionBadge';
 import DocumentPreview from './components/DocumentPreview';
 import RichEditor from './components/RichEditor';
 import { deleteDocument, getDocumentById, saveDocument } from './api/documents';
-import { createInitialFormData, mergeLoadedFormData } from './constants/documentSchema';
+import { createInitialFormData, mergeLoadedFormData, CLOSING_PAGE_STYLE_OPTIONS } from './constants/documentSchema';
 import { TEMPLATE_OPTIONS, isRiskGuideTemplate } from './templates/registry';
 import {
   createRiskGuideBlank,
@@ -15,6 +15,7 @@ import {
 import { isSupabaseConfigured } from './lib/supabase';
 import { generateReportFromFile } from './utils/aiHelper';
 import { exportToPDF } from './utils/pdfExport';
+import './document.css';
 import './App.css';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -41,12 +42,14 @@ function useMediaQuery(query) {
 
 // ── 페이지 분할 상수 (document CSS px, 트랜스폼 미적용 기준) ──────────
 // A4 1123px, padding 상 106 / 하 57 → inner 960px
-// 헤더블록(수신·발신·제목 등) ≈ 230px  /  푸터블록(발신명의·보존기간) ≈ 170px
-const BODY_SINGLE_H = 600; // 단일 페이지: header + body + footer 전부 들어가는 한계
-const BODY_FIRST_H = 750; // 다중 첫 페이지 (마지막 페이지가 될 경우)
-const BODY_FIRST_H_MID = 790; // 다중 첫 페이지 (중간 페이지가 될 경우, 여백 채움)
-const BODY_CONT_H = 820; // 이후 페이지 (마지막 페이지가 될 경우)
-const BODY_CONT_H_MID = 890; // 이후 페이지 (중간 페이지가 될 경우, 여백 채움)
+const PAGE_INNER_H = 960;
+const HEADER_BLOCK_H = 230; // 1면 헤더(수신·발신·제목·결재란)
+const CONTINUED_BLOCK_H = 36; // 연속 페이지 표시줄
+
+function getBodyLimit(isFirst) {
+  const overhead = isFirst ? HEADER_BLOCK_H : CONTINUED_BLOCK_H;
+  return Math.max(80, PAGE_INNER_H - overhead);
+}
 
 // 본문 HTML → 페이지별 청크 배열 계산 (트랜스폼 없는 위치에서 측정)
 function useBodyChunks(body, measureRef) {
@@ -59,6 +62,8 @@ function useBodyChunks(body, measureRef) {
     let timerId = null;
 
     const run = () => {
+      const singlePageLimit = getBodyLimit(true);
+
       const children = [...container.children];
       if (!children.length) {
         setChunks([body || '']);
@@ -69,7 +74,7 @@ function useBodyChunks(body, measureRef) {
       let totalH = 0;
       for (const c of children) totalH += c.offsetHeight;
 
-      if (totalH <= BODY_SINGLE_H) {
+      if (totalH <= singlePageLimit) {
         setChunks([body || '']);
         return;
       }
@@ -216,16 +221,16 @@ function useBodyChunks(body, measureRef) {
         const testHtml = renderItems(testItems);
         const h = getTempHeight(testHtml);
 
-        // 현재 페이지의 한계선 결정 (남은 분량이 충분히 길면 중간 페이지용 넉넉한 한계선 적용)
-        let limit = isFirst ? BODY_FIRST_H : BODY_CONT_H;
-        if (i < flatItems.length - 1) {
-          const remainingItems = flatItems.slice(i + 1);
+        const remainingItems = flatItems.slice(i + 1);
+
+        let limit = getBodyLimit(isFirst);
+
+        // 중간 페이지: 남은 본문이 많으면 하단 여백 없이 페이지를 더 채움
+        if (remainingItems.length > 0) {
           const remainingHtml = renderItems(remainingItems);
           const remainingH = getTempHeight(remainingHtml);
-
-          // 남은 요소가 있고, 그 높이가 유의미하다면 중간 페이지 한계선으로 상향 적용
           if (remainingH > 80) {
-            limit = isFirst ? BODY_FIRST_H_MID : BODY_CONT_H_MID;
+            limit = PAGE_INNER_H - (isFirst ? HEADER_BLOCK_H : CONTINUED_BLOCK_H);
           }
         }
 
@@ -956,8 +961,35 @@ export default function App() {
                     </label>
                   </div>
                   <p className="section-desc" style={{ marginTop: 8, marginBottom: 0 }}>
-                    표지 및 본문의 직인 영역을 출력에 포함합니다.
+                    표지 및 끝장의 직인 영역을 출력에 포함합니다.
                   </p>
+                </section>
+
+                {/* 끝장 레이아웃 */}
+                <section className="form-section">
+                  <h3 className="section-title">
+                    <span className="section-icon">📄</span> 끝장 레이아웃
+                  </h3>
+                  <p className="section-desc" style={{ marginTop: 0, marginBottom: 12 }}>
+                    공문 정보(보존기간·발신명의·직인·결재)와 재산 문구가 들어가는 마지막 페이지
+                    형식입니다.
+                  </p>
+                  <div className="closing-style-options">
+                    {CLOSING_PAGE_STYLE_OPTIONS.map(({ value, label }) => (
+                      <label key={value} className="closing-style-option">
+                        <input
+                          type="radio"
+                          name="closingPageStyle"
+                          value={value}
+                          checked={data.closingPageStyle === value}
+                          onChange={() =>
+                            setData((prev) => ({ ...prev, closingPageStyle: value }))
+                          }
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </section>
               </>
             )}

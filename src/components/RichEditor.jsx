@@ -13,10 +13,23 @@ import './RichEditor.css';
 
 const FONT_OPTIONS = [
   { label: '기본', value: '' },
+  { label: '맑은 고딕', value: "'Malgun Gothic', sans-serif" },
   { label: 'Noto Sans KR', value: "'Noto Sans KR', sans-serif" },
-  { label: 'Chiron Sung HK', value: "'Chiron Sung HK', serif" },
+  { label: '나눔고딕', value: "'Nanum Gothic', sans-serif" },
   { label: 'Noto Serif KR', value: "'Noto Serif KR', serif" },
+  { label: '나눔명조', value: "'Nanum Myeongjo', serif" },
+  { label: '바탕', value: "'Batang', serif" },
+  { label: 'Chiron Sung HK', value: "'Chiron Sung HK', serif" },
 ];
+
+function normalizeFontValue(fontAttr) {
+  if (!fontAttr) return '';
+  const normalized = fontAttr.replace(/['"]/g, '').toLowerCase();
+  const matched = FONT_OPTIONS.find(
+    (opt) => opt.value && opt.value.replace(/['"]/g, '').toLowerCase() === normalized
+  );
+  return matched?.value ?? '';
+}
 
 const FONT_SIZE_OPTIONS = [
   { label: '크기', value: '' },
@@ -29,6 +42,10 @@ const FONT_SIZE_OPTIONS = [
   { label: '15pt', value: '15pt' },
 ];
 
+const FONT_SIZE_DEFAULT = '10pt';
+const FONT_SIZE_MIN_PT = 8;
+const FONT_SIZE_STEP_PT = 0.5;
+
 const LINE_HEIGHT_OPTIONS = [
   { label: '줄간격', value: '' },
   { label: '1.6', value: '1.6' },
@@ -36,6 +53,48 @@ const LINE_HEIGHT_OPTIONS = [
   { label: '2.0', value: '2.0' },
   { label: '2.2', value: '2.2' },
 ];
+
+const LINE_HEIGHT_DEFAULT = '1.8';
+const LINE_HEIGHT_MIN = 1;
+const LINE_HEIGHT_STEP = 0.1;
+
+function parseFontSizePt(value) {
+  if (!value) return parseFloat(FONT_SIZE_DEFAULT);
+  const match = String(value).match(/^([\d.]+)\s*pt$/i);
+  return match ? parseFloat(match[1]) : parseFloat(FONT_SIZE_DEFAULT);
+}
+
+function formatFontSizePt(pt) {
+  const rounded = Math.round(pt * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded}pt` : `${rounded}pt`;
+}
+
+function parseLineHeight(value) {
+  if (!value) return parseFloat(LINE_HEIGHT_DEFAULT);
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : parseFloat(LINE_HEIGHT_DEFAULT);
+}
+
+function formatLineHeight(lh) {
+  return String(Math.round(lh * 10) / 10);
+}
+
+function stepFontSizeByDelta(current, delta) {
+  const nextPt = Math.round((parseFontSizePt(current) + delta * FONT_SIZE_STEP_PT) * 10) / 10;
+  if (nextPt < FONT_SIZE_MIN_PT) return null;
+  return formatFontSizePt(nextPt);
+}
+
+function stepLineHeightByDelta(current, delta) {
+  const next = Math.round((parseLineHeight(current) + delta * LINE_HEIGHT_STEP) * 10) / 10;
+  if (next < LINE_HEIGHT_MIN) return null;
+  return formatLineHeight(next);
+}
+
+function withCurrentSelectOption(options, current) {
+  if (!current || options.some((o) => o.value === current)) return options;
+  return [options[0], { label: current, value: current }, ...options.slice(1)];
+}
 
 const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
   <button
@@ -52,12 +111,12 @@ const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
   </button>
 );
 
-const ToolbarSelect = ({ value, onChange, title, options }) => (
+const ToolbarSelect = ({ value, onChange, onPointerDown, title, options }) => (
   <select
     className="re-select"
     value={value}
     title={title}
-    onMouseDown={(e) => e.preventDefault()}
+    onPointerDown={onPointerDown}
     onChange={(e) => onChange(e.target.value)}
   >
     {options.map((opt) => (
@@ -70,8 +129,21 @@ const ToolbarSelect = ({ value, onChange, title, options }) => (
 
 const Divider = () => <span className="re-divider" />;
 
+const ToolbarStepper = ({ onDecrease, onIncrease, canDecrease, decreaseTitle, increaseTitle, children }) => (
+  <div className="re-stepper">
+    <ToolbarBtn onClick={onDecrease} disabled={!canDecrease} title={decreaseTitle}>
+      −
+    </ToolbarBtn>
+    {children}
+    <ToolbarBtn onClick={onIncrease} title={increaseTitle}>
+      +
+    </ToolbarBtn>
+  </div>
+);
+
 export default function RichEditor({ value, onChange, placeholder }) {
   const isExternalUpdate = useRef(false);
+  const savedSelection = useRef(null);
   const [, setToolbarTick] = useState(0);
 
   const editor = useEditor({
@@ -129,37 +201,67 @@ export default function RichEditor({ value, onChange, placeholder }) {
   if (!editor) return null;
 
   const textStyle = editor.getAttributes('textStyle');
-  const currentFont = textStyle.fontFamily || '';
+  const currentFont = normalizeFontValue(textStyle.fontFamily);
   const currentSize = textStyle.fontSize || '';
   const currentLineHeight = textStyle.lineHeight || '';
+
+  const saveSelection = () => {
+    const { from, to } = editor.state.selection;
+    savedSelection.current = { from, to };
+  };
+
+  const applyWithSavedSelection = (apply) => {
+    let chain = editor.chain().focus();
+    const saved = savedSelection.current;
+    if (saved && saved.from !== saved.to) {
+      chain = chain.setTextSelection({ from: saved.from, to: saved.to });
+    }
+    apply(chain).run();
+    savedSelection.current = null;
+  };
 
   const insertTable = () => {
     editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
   };
 
   const handleFontFamily = (val) => {
-    if (!val) {
-      editor.chain().focus().unsetFontFamily().run();
-      return;
-    }
-    editor.chain().focus().setFontFamily(val).run();
+    applyWithSavedSelection((chain) => {
+      if (!val) return chain.unsetFontFamily();
+      return chain.setFontFamily(val);
+    });
   };
 
   const handleFontSize = (val) => {
-    if (!val) {
-      editor.chain().focus().unsetFontSize().run();
-      return;
-    }
-    editor.chain().focus().setFontSize(val).run();
+    applyWithSavedSelection((chain) => {
+      if (!val) return chain.unsetFontSize();
+      return chain.setFontSize(val);
+    });
   };
 
   const handleLineHeight = (val) => {
-    if (!val) {
-      editor.chain().focus().unsetLineHeight().run();
-      return;
-    }
-    editor.chain().focus().setLineHeight(val).run();
+    applyWithSavedSelection((chain) => {
+      if (!val) return chain.unsetLineHeight();
+      return chain.setLineHeight(val);
+    });
   };
+
+  const fontSizePt = parseFontSizePt(currentSize);
+  const lineHeightNum = parseLineHeight(currentLineHeight);
+  const canDecreaseFontSize = fontSizePt > FONT_SIZE_MIN_PT + 0.001;
+  const canDecreaseLineHeight = lineHeightNum > LINE_HEIGHT_MIN + 0.001;
+
+  const stepFontSize = (delta) => {
+    const next = stepFontSizeByDelta(currentSize, delta);
+    if (next) handleFontSize(next);
+  };
+
+  const stepLineHeight = (delta) => {
+    const next = stepLineHeightByDelta(currentLineHeight, delta);
+    if (next) handleLineHeight(next);
+  };
+
+  const fontSizeSelectOptions = withCurrentSelectOption(FONT_SIZE_OPTIONS, currentSize);
+  const lineHeightSelectOptions = withCurrentSelectOption(LINE_HEIGHT_OPTIONS, currentLineHeight);
 
   const clearFormatting = () => {
     editor
@@ -260,21 +362,40 @@ export default function RichEditor({ value, onChange, placeholder }) {
         <ToolbarSelect
           value={currentFont}
           onChange={handleFontFamily}
+          onPointerDown={saveSelection}
           title="글꼴"
           options={FONT_OPTIONS}
         />
-        <ToolbarSelect
-          value={currentSize}
-          onChange={handleFontSize}
-          title="글자 크기"
-          options={FONT_SIZE_OPTIONS}
-        />
-        <ToolbarSelect
-          value={currentLineHeight}
-          onChange={handleLineHeight}
-          title="줄간격"
-          options={LINE_HEIGHT_OPTIONS}
-        />
+        <ToolbarStepper
+          onDecrease={() => stepFontSize(-1)}
+          onIncrease={() => stepFontSize(1)}
+          canDecrease={canDecreaseFontSize}
+          decreaseTitle="글자 크기 줄이기"
+          increaseTitle="글자 크기 키우기"
+        >
+          <ToolbarSelect
+            value={currentSize}
+            onChange={handleFontSize}
+            onPointerDown={saveSelection}
+            title="글자 크기"
+            options={fontSizeSelectOptions}
+          />
+        </ToolbarStepper>
+        <ToolbarStepper
+          onDecrease={() => stepLineHeight(-1)}
+          onIncrease={() => stepLineHeight(1)}
+          canDecrease={canDecreaseLineHeight}
+          decreaseTitle="줄간격 줄이기"
+          increaseTitle="줄간격 넓히기"
+        >
+          <ToolbarSelect
+            value={currentLineHeight}
+            onChange={handleLineHeight}
+            onPointerDown={saveSelection}
+            title="줄간격"
+            options={lineHeightSelectOptions}
+          />
+        </ToolbarStepper>
 
         <Divider />
 

@@ -29,6 +29,116 @@
 .body-page {
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* === CLOSING PAGE === */
+
+/* 중앙 모음형 */
+.closing-page--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 56px;
+  box-sizing: border-box;
+}
+
+.closing-page--center .closing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+  max-width: 560px;
+}
+
+.closing-page--center .doc-official-block--center {
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 0.5px solid #ddd;
+  text-align: center;
+}
+
+.closing-page--center .doc-official-block--center .doc-footer {
+  align-items: center;
+}
+
+.closing-page--center .doc-official-block--center .doc-drafter-row {
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px 32px;
+}
+
+.closing-page--center .doc-official-block--center .doc-drafter-spacer {
+  display: none;
+}
+
+/* 위→아래 흐름형 */
+.closing-page--flow {
+  display: flex;
+  flex-direction: column;
+  padding: 28mm 15mm 15mm 20mm;
+  box-sizing: border-box;
+}
+
+.closing-page--flow .closing-flow-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.closing-page--flow .closing-flow-center {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.closing-page--flow .doc-official-block--flow {
+  flex: 0 0 auto;
+}
+
+.closing-page--flow .closing-branding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+/* 공문 메타 블록 (끝장 공통) */
+.doc-official-block {
+  width: 100%;
+}
+
+.doc-official-block .doc-retention {
+  font-size: 10pt;
+  color: #444;
+}
+
+.doc-official-block .doc-footer {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 12pt;
+}
+
+.doc-official-block--center .doc-footer {
+  align-items: center;
+}
+
+.doc-official-block .doc-drafter-row {
+  margin-top: 24px;
+  border-top: 1px solid #333;
+  padding-top: 8px;
+  display: flex;
+  gap: 40px;
+  font-size: 9pt;
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
 /* === COVER PAGE === */
@@ -151,11 +261,18 @@
   padding: 28mm 15mm 15mm 20mm;
 }
 
+/* 문서 헤더 상단 (수신·발신 + 결재란) */
+.doc-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
 /* 결재란 */
 .approval-block {
-  position: absolute;
-  top: 20px;
-  right: 15mm;
+  flex-shrink: 0;
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 9pt;
 }
@@ -195,8 +312,9 @@
 
 /* 문서 헤더 정보 */
 .doc-header-info {
-  margin-top: 8px;
-  margin-bottom: 16px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
 }
 
 .doc-info-row {
@@ -325,14 +443,13 @@
 
 /* 보존기간 */
 .doc-retention {
-  margin-top: 12px;
   font-size: 10pt;
   color: #444;
 }
 
 /* 발신명의 */
 .doc-footer {
-  margin-top: 32px;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -360,16 +477,17 @@
 
 /* 기안자/검토자 */
 .doc-drafter-row {
-  position: absolute;
-  bottom: 15mm;
-  left: 20mm;
-  right: 15mm;
+  margin-top: 24px;
   border-top: 1px solid #333;
   padding-top: 8px;
   display: flex;
   gap: 40px;
   font-size: 9pt;
   font-family: 'Noto Sans KR', sans-serif;
+}
+
+.doc-drafter-spacer {
+  flex: 1;
 }
 
 .doc-drafter-item {
@@ -388,21 +506,7 @@
   font-size: 10pt;
 }
 
-/* === CLOSING PAGE === */
-.closing-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.closing-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  text-align: center;
-}
-
+/* 끝장 브랜딩 (로고·재산 문구) */
 .closing-logo {
   max-height: 72px;
   max-width: 280px;

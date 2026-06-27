@@ -65,7 +65,7 @@
 
 .re-select {
   height: 26px;
-  max-width: 108px;
+  max-width: 120px;
   padding: 0 4px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
@@ -84,6 +84,23 @@
   outline: none;
   border-color: var(--color-primary-light);
   box-shadow: 0 0 0 2px rgba(40, 86, 163, 0.12);
+}
+
+.re-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.re-stepper .re-btn {
+  min-width: 22px;
+  padding: 0 4px;
+  font-size: 11pt;
+  font-weight: 600;
+}
+
+.re-stepper .re-select {
+  max-width: 72px;
 }
 
 /* ── 에디터 영역 ── */

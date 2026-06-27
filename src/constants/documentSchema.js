@@ -3,6 +3,14 @@ import { createRiskGuideFormData } from '../templates/risk-guide/defaults';
 export const TEMPLATE_REPORT_DEFAULT = 'report-default';
 export const TEMPLATE_RISK_GUIDE = 'risk-guide';
 
+export const CLOSING_PAGE_CENTER = 'center';
+export const CLOSING_PAGE_FLOW = 'flow';
+
+export const CLOSING_PAGE_STYLE_OPTIONS = [
+  { value: CLOSING_PAGE_FLOW, label: '위→아래 흐름형' },
+  { value: CLOSING_PAGE_CENTER, label: '중앙 모음형' },
+];
+
 export const TEMPLATE_LABELS = {
   [TEMPLATE_REPORT_DEFAULT]: '공문서 보고서',
   [TEMPLATE_RISK_GUIDE]: '업무 리스크 관리',
@@ -38,6 +46,7 @@ export function createInitialFormData(overrides = {}) {
     classification: '일반문서',
     showApproval: false,
     showSeal: false,
+    closingPageStyle: CLOSING_PAGE_FLOW,
     ...overrides,
   };
 }

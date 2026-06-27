@@ -215,6 +215,24 @@
   line-height: 1.5;
 }
 
+.closing-style-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.closing-style-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10pt;
+  cursor: pointer;
+}
+
+.closing-style-option input {
+  accent-color: var(--color-primary, #1a3a6b);
+}
+
 .section-title-row {
   display: flex;
   align-items: center;

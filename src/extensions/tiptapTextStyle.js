@@ -1,6 +1,14 @@
 import { Extension } from '@tiptap/core';
 
+const STYLE_CSS_PROPERTY = {
+  fontFamily: 'font-family',
+  fontSize: 'font-size',
+  lineHeight: 'line-height',
+};
+
 function createTextStyleAttributeExtension({ name, styleProperty, attributeName, commandPrefix }) {
+  const cssProperty = STYLE_CSS_PROPERTY[styleProperty] ?? styleProperty;
+
   return Extension.create({
     name,
     addOptions() {
@@ -20,7 +28,7 @@ function createTextStyleAttributeExtension({ name, styleProperty, attributeName,
               renderHTML: (attributes) => {
                 const value = attributes[attributeName];
                 if (!value) return {};
-                return { style: `${styleProperty}: ${value}` };
+                return { style: `${cssProperty}: ${value}` };
               },
             },
           },
@@ -33,15 +41,21 @@ function createTextStyleAttributeExtension({ name, styleProperty, attributeName,
       return {
         [setKey]:
           (value) =>
-          ({ chain }) =>
-            chain().setMark('textStyle', { [attributeName]: value }).run(),
+          ({ chain, editor }) => {
+            const current = editor.getAttributes('textStyle');
+            return chain()
+              .setMark('textStyle', { ...current, [attributeName]: value })
+              .run();
+          },
         [unsetKey]:
           () =>
-          ({ chain }) =>
-            chain()
-              .setMark('textStyle', { [attributeName]: null })
+          ({ chain, editor }) => {
+            const current = editor.getAttributes('textStyle');
+            return chain()
+              .setMark('textStyle', { ...current, [attributeName]: null })
               .removeEmptyTextStyle()
-              .run(),
+              .run();
+          },
       };
     },
   });
