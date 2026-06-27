@@ -1,75 +1,75 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import AppVersionBadge from '../components/AppVersionBadge'
-import { deleteDocument, listDocuments } from '../api/documents'
-import { getTemplateLabel } from '../constants/documentSchema'
-import { isSupabaseConfigured } from '../lib/supabase'
-import './DocumentListPage.css'
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import AppVersionBadge from '../components/AppVersionBadge';
+import { deleteDocument, listDocuments } from '../api/documents';
+import { getTemplateLabel } from '../constants/documentSchema';
+import { isSupabaseConfigured } from '../lib/supabase';
+import './DocumentListPage.css';
 
 function formatDate(iso) {
-  if (!iso) return '-'
+  if (!iso) return '-';
   return new Date(iso).toLocaleString('ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 }
 
 export default function DocumentListPage() {
-  const navigate = useNavigate()
-  const [documents, setDocuments] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [deletingId, setDeletingId] = useState(null)
+  const navigate = useNavigate();
+  const [documents, setDocuments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
 
   const handleDelete = async (e, doc) => {
-    e.stopPropagation()
-    const label = doc.title || '제목 없음'
+    e.stopPropagation();
+    const label = doc.title || '제목 없음';
     if (!window.confirm(`「${label}」 문서를 삭제할까요?\n삭제 후에는 되돌릴 수 없습니다.`)) {
-      return
+      return;
     }
 
-    setDeletingId(doc.id)
-    setError('')
+    setDeletingId(doc.id);
+    setError('');
 
     try {
-      await deleteDocument(doc.id)
-      setDocuments((prev) => prev.filter((row) => row.id !== doc.id))
+      await deleteDocument(doc.id);
+      setDocuments((prev) => prev.filter((row) => row.id !== doc.id));
     } catch (err) {
-      setError(err?.message || '문서 삭제에 실패했습니다.')
+      setError(err?.message || '문서 삭제에 실패했습니다.');
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
-      setError('.env에 Supabase 설정이 필요합니다.')
-      setIsLoading(false)
-      return
+      setError('.env에 Supabase 설정이 필요합니다.');
+      setIsLoading(false);
+      return;
     }
 
-    let cancelled = false
+    let cancelled = false;
 
     listDocuments()
       .then((rows) => {
-        if (!cancelled) setDocuments(rows)
+        if (!cancelled) setDocuments(rows);
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err?.message || '문서 목록을 불러오지 못했습니다.')
+          setError(err?.message || '문서 목록을 불러오지 못했습니다.');
         }
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [])
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="list-page">
@@ -111,11 +111,7 @@ export default function DocumentListPage() {
               </thead>
               <tbody>
                 {documents.map((doc) => (
-                  <tr
-                    key={doc.id}
-                    className="list-row"
-                    onClick={() => navigate(`/edit/${doc.id}`)}
-                  >
+                  <tr key={doc.id} className="list-row" onClick={() => navigate(`/edit/${doc.id}`)}>
                     <td className="list-cell-title">{doc.title || '제목 없음'}</td>
                     <td>{getTemplateLabel(doc.template_id)}</td>
                     <td>{formatDate(doc.created_at)}</td>
@@ -138,5 +134,5 @@ export default function DocumentListPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

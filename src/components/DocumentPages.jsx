@@ -1,9 +1,13 @@
-import '../document.css'
+import '../document.css';
 
 const RETENTION_LABELS = {
-  영구: '영구', 준영구: '준영구', '10년': '10년',
-  '5년': '5년', '3년': '3년', '1년': '1년',
-}
+  영구: '영구',
+  준영구: '준영구',
+  '10년': '10년',
+  '5년': '5년',
+  '3년': '3년',
+  '1년': '1년',
+};
 
 // ── 결재란 ──────────────────────────────────────────────────────────
 function ApprovalBlock({ author, reviewer, approver }) {
@@ -31,7 +35,7 @@ function ApprovalBlock({ author, reviewer, approver }) {
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
 // ── 문서 헤더 (수신·발신·제목) ────────────────────────────────────
@@ -77,12 +81,22 @@ function DocHeader({ docNumber, recipient, via, sender, orgName, date, title }) 
       </div>
       <hr className="doc-divider" />
     </>
-  )
+  );
 }
 
 // ── 문서 푸터 (붙임·보존기간·발신명의·기안자행) ────────────────────
-function DocFooter({ attachedFileName, retention, sender, orgName, showSeal,
-                     showApproval, author, reviewer, approver, date }) {
+function DocFooter({
+  attachedFileName,
+  retention,
+  sender,
+  orgName,
+  showSeal,
+  showApproval,
+  author,
+  reviewer,
+  approver,
+  date,
+}) {
   return (
     <>
       {attachedFileName && (
@@ -94,9 +108,7 @@ function DocFooter({ attachedFileName, retention, sender, orgName, showSeal,
           </div>
         </>
       )}
-      <div className="doc-retention">
-        보존기간 : {RETENTION_LABELS[retention] || retention}
-      </div>
+      <div className="doc-retention">보존기간 : {RETENTION_LABELS[retention] || retention}</div>
       <div className="doc-footer">
         <div className="doc-sender-name">{sender || orgName || '발신명의'}</div>
         {showSeal && <div className="doc-seal">직인</div>}
@@ -131,22 +143,35 @@ function DocFooter({ attachedFileName, retention, sender, orgName, showSeal,
         </div>
       )}
     </>
-  )
+  );
 }
 
 // ── 메인 컴포넌트 ───────────────────────────────────────────────────
 export default function DocumentPages({ data, bodyChunks, id }) {
   const {
-    orgName, recipient, via, sender, title, body, retention,
-    attachedFileName, author, reviewer, approver, department,
-    docNumber, date, classification, showApproval, showSeal,
-  } = data
+    orgName,
+    recipient,
+    via,
+    sender,
+    title,
+    body,
+    retention,
+    attachedFileName,
+    author,
+    reviewer,
+    approver,
+    department,
+    docNumber,
+    date,
+    classification,
+    showApproval,
+    showSeal,
+  } = data;
 
-  const chunks = bodyChunks?.length ? bodyChunks : [body || '']
+  const chunks = bodyChunks?.length ? bodyChunks : [body || ''];
 
   return (
     <div id={id} className="doc-pages-wrapper">
-
       {/* ── 표지 ── */}
       <div className="a4-page cover-page">
         <div className="cover-top">
@@ -155,7 +180,7 @@ export default function DocumentPages({ data, bodyChunks, id }) {
         </div>
         <hr className="cover-divider-top" />
         <div className="cover-center">
-          <div className="cover-doc-type">보  고  서</div>
+          <div className="cover-doc-type">보 고 서</div>
           <div className="cover-title">{title || '보고서 제목을 입력하세요'}</div>
           {department && <div className="cover-subtitle">{department}</div>}
         </div>
@@ -193,8 +218,8 @@ export default function DocumentPages({ data, bodyChunks, id }) {
 
       {/* ── 본문 페이지들 (페이지 단위로 분할) ── */}
       {chunks.map((chunk, i) => {
-        const isFirst = i === 0
-        const isLast  = i === chunks.length - 1
+        const isFirst = i === 0;
+        const isLast = i === chunks.length - 1;
         return (
           <div key={i} className="a4-page body-page">
             {/* 결재란 — 첫 페이지만 */}
@@ -205,8 +230,13 @@ export default function DocumentPages({ data, bodyChunks, id }) {
             {/* 헤더 정보 — 첫 페이지만 */}
             {isFirst && (
               <DocHeader
-                docNumber={docNumber} recipient={recipient} via={via}
-                sender={sender} orgName={orgName} date={date} title={title}
+                docNumber={docNumber}
+                recipient={recipient}
+                via={via}
+                sender={sender}
+                orgName={orgName}
+                date={date}
+                title={title}
               />
             )}
 
@@ -229,14 +259,20 @@ export default function DocumentPages({ data, bodyChunks, id }) {
             {/* 푸터 — 마지막 페이지만 */}
             {isLast && (
               <DocFooter
-                attachedFileName={attachedFileName} retention={retention}
-                sender={sender} orgName={orgName} showSeal={showSeal}
-                showApproval={showApproval} author={author} reviewer={reviewer}
-                approver={approver} date={date}
+                attachedFileName={attachedFileName}
+                retention={retention}
+                sender={sender}
+                orgName={orgName}
+                showSeal={showSeal}
+                showApproval={showApproval}
+                author={author}
+                reviewer={reviewer}
+                approver={approver}
+                date={date}
               />
             )}
           </div>
-        )
+        );
       })}
 
       {/* ── 마지막 장 ── */}
@@ -244,9 +280,7 @@ export default function DocumentPages({ data, bodyChunks, id }) {
         <div className="closing-content">
           <img src="/logo.jpg" alt={orgName || '기관명'} className="closing-logo" />
           <p className="closing-statement">
-            이 문서는{' '}
-            <span className="closing-org">{orgName || '기관/회사명'}</span>
-            의 재산입니다.
+            이 문서는 <span className="closing-org">{orgName || '기관/회사명'}</span>의 재산입니다.
           </p>
           <p className="closing-sub">무단 복제·배포·유출을 금지합니다.</p>
           <div className="closing-divider" />
@@ -254,5 +288,5 @@ export default function DocumentPages({ data, bodyChunks, id }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,22 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-let client = null
+let client = null;
 
 export function getSupabase() {
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      '.env에 VITE_SUPABASE_URL과 VITE_SUPABASE_ANON_KEY를 설정해주세요.'
-    )
+    throw new Error('.env에 VITE_SUPABASE_URL과 VITE_SUPABASE_ANON_KEY를 설정해주세요.');
   }
   if (!client) {
-    client = createClient(supabaseUrl, supabaseAnonKey)
+    client = createClient(supabaseUrl, supabaseAnonKey);
   }
-  return client
+  return client;
 }
 
 export function isSupabaseConfigured() {
-  return Boolean(supabaseUrl && supabaseAnonKey)
+  return Boolean(supabaseUrl && supabaseAnonKey);
 }

@@ -45,14 +45,14 @@ export const RISK_GUIDE_EXAMPLE_HTML = `
 </table>
 
 <p>※ <strong>기억할 점:</strong> 리스크 보고는 문제가 터진 뒤가 아니라, <mark>터지기 전에 공유하는 예방 활동</mark>입니다.</p>
-`.trim()
+`.trim();
 
 export function createRiskGuideFormData(overrides = {}, { useExample = true } = {}) {
   const today = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  })
+  });
 
   return {
     templateId: 'risk-guide',
@@ -74,16 +74,13 @@ export function createRiskGuideFormData(overrides = {}, { useExample = true } = 
     showApproval: false,
     showSeal: false,
     ...overrides,
-  }
+  };
 }
 
 export function createRiskGuideBlank() {
-  return createRiskGuideFormData(
-    { title: '', author: '', body: '' },
-    { useExample: false }
-  )
+  return createRiskGuideFormData({ title: '', author: '', body: '' }, { useExample: false });
 }
 
 export function createRiskGuideExample() {
-  return createRiskGuideFormData({}, { useExample: true })
+  return createRiskGuideFormData({}, { useExample: true });
 }

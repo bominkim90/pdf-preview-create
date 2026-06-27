@@ -1,15 +1,15 @@
-import '../../document.css'
-import './risk-guide.css'
+import '../../document.css';
+import './risk-guide.css';
 
 export default function DocumentPagesRiskGuide({ data, bodyChunks, id }) {
-  const { title, author, date, body } = data
-  const chunks = bodyChunks?.length ? bodyChunks : [body || '']
+  const { title, author, date, body } = data;
+  const chunks = bodyChunks?.length ? bodyChunks : [body || ''];
 
   return (
     <div id={id} className="doc-pages-wrapper risk-guide-wrapper">
       {chunks.map((chunk, i) => {
-        const isFirst = i === 0
-        const isLast = i === chunks.length - 1
+        const isFirst = i === 0;
+        const isLast = i === chunks.length - 1;
         return (
           <div key={i} className="a4-page risk-guide-page">
             {isFirst && (
@@ -52,8 +52,8 @@ export default function DocumentPagesRiskGuide({ data, bodyChunks, id }) {
               </footer>
             )}
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
