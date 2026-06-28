@@ -1,10 +1,15 @@
 import OpenAI from 'openai';
+import { getActiveOpenAiModel } from '../constants/openAiModels';
+
+export { OPENAI_MODEL_OPTIONS, getActiveOpenAiModel } from '../constants/openAiModels';
 
 export async function generateReportFromFile(fileContent, fileName, title, recipient, apiKey) {
   const client = new OpenAI({
     apiKey,
     dangerouslyAllowBrowser: true,
   });
+
+  const { id: modelId } = getActiveOpenAiModel();
 
   const prompt = `다음은 보고서 작성에 사용할 원본 자료입니다. 아래 규칙을 엄격히 준수하여 "${title || '보고서'}" 제목의 공식 보고서 본문을 작성해 주세요.
 
@@ -24,7 +29,7 @@ export async function generateReportFromFile(fileContent, fileName, title, recip
   8. 마지막에 "끝." 으로 마무리`;
 
   const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: modelId,
     messages: [
       {
         role: 'system',

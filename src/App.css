@@ -275,6 +275,17 @@
   line-height: 1.5;
 }
 
+.ai-model-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 9pt;
+  color: var(--color-primary);
+}
+
+.ai-model-note strong {
+  font-weight: 700;
+}
+
 .closing-style-options {
   display: flex;
   flex-direction: column;

@@ -1,3 +1,5 @@
+import { getActiveOpenAiModel } from '../../constants/openAiModels';
+
 export default function AiReportSection({
   attachedFile,
   fileInputRef,
@@ -7,13 +9,19 @@ export default function AiReportSection({
   onRemoveFile,
   onGenerateAI,
 }) {
+  const activeModel = getActiveOpenAiModel();
+
   return (
     <section className="form-section ai-attach-section">
       <h3 className="section-title">
         <span className="section-icon">🤖</span> AI 보고서 생성
       </h3>
       <p className="section-desc">
-        .txt, .md 파일을 첨부하면 GPT-4o-mini가 내용을 분석하여 본문을 자동 작성합니다.
+        .txt, .md 파일을 첨부하면 AI가 내용을 분석하여 본문을 자동 작성합니다.
+        <br />
+        <span className="ai-model-note">
+          사용 모델 : <strong>{activeModel.id}</strong>
+        </span>
       </p>
 
       {!attachedFile ? (
