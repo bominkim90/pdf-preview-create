@@ -134,9 +134,21 @@
 }
 
 /* ── 에디터 영역 ── */
+.re-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .re-editor-wrap {
   flex: 1;
   overflow-y: auto;
+}
+
+.re-editor-wrap--hidden,
+.re-html-source--hidden {
+  display: none !important;
 }
 
 .re-html-source {

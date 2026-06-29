@@ -208,8 +208,8 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
 
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!readOnly);
-  }, [editor, readOnly]);
+    editor.setEditable(!readOnly && !isHtmlMode);
+  }, [editor, readOnly, isHtmlMode]);
 
   if (!editor) return null;
 
@@ -290,8 +290,9 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
 
   const switchToDesignMode = () => {
     if (!isHtmlMode) return;
+    const nextHtml = htmlSource || '';
     isExternalUpdate.current = true;
-    editor.commands.setContent(htmlSource || '', false);
+    editor.commands.setContent(nextHtml, false);
     isExternalUpdate.current = false;
     onChange(editor.getHTML());
     setIsHtmlMode(false);
@@ -608,17 +609,21 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
       </div>
       )}
 
-      {isHtmlMode ? (
+      <div className="re-body">
         <textarea
-          className="re-html-source"
+          className={`re-html-source${isHtmlMode ? '' : ' re-html-source--hidden'}`}
           value={htmlSource}
           onChange={handleHtmlSourceChange}
           spellCheck={false}
+          aria-hidden={!isHtmlMode}
+          tabIndex={isHtmlMode ? 0 : -1}
           aria-label="HTML 소스 편집"
         />
-      ) : (
-        <EditorContent editor={editor} className="re-editor-wrap" />
-      )}
+        <EditorContent
+          editor={editor}
+          className={`re-editor-wrap${isHtmlMode ? ' re-editor-wrap--hidden' : ''}`}
+        />
+      </div>
 
       {!readOnly && (
         <div className="re-mode-footer" role="tablist" aria-label="작성 모드">
