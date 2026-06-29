@@ -1,12 +1,11 @@
 /** 사용할 OpenAI 모델 — 아래 OPENAI_MODEL_OPTIONS의 id 중 하나로 설정 */
-export const ACTIVE_OPENAI_MODEL_ID = 'gpt-4.1-mini';
+export const ACTIVE_OPENAI_MODEL_ID = 'gpt-4o-mini';
 
 /** OpenAI Chat Completions 모델 목록 (id는 API model 파라미터 값) */
 export const OPENAI_MODEL_OPTIONS = [
   {
     id: 'gpt-4.1-mini',
-    description:
-      'GPT-4.1 Mini — 4o-mini보다 지시·한국어 품질 ↑, 비용 중간 (내부 보고서용 추천)',
+    description: 'GPT-4.1 Mini — 4o-mini보다 지시·한국어 품질 ↑, 비용 중간 (내부 보고서용 추천)',
   },
   {
     id: 'gpt-4o-mini',
