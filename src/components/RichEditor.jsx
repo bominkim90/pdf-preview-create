@@ -6,8 +6,15 @@ import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import TextAlign from '@tiptap/extension-text-align';
-import TextStyle from '@tiptap/extension-text-style';
-import { FontFamily, FontSize, LineHeight } from '../extensions/tiptapTextStyle';
+import {
+  BackgroundColor,
+  ExtendedTextStyle,
+  FontFamily,
+  FontSize,
+  LineHeight,
+  Small,
+  TextColor,
+} from '../extensions/tiptapTextStyle';
 import { useEffect, useRef, useState } from 'react';
 import './RichEditor.css';
 
@@ -96,6 +103,24 @@ function withCurrentSelectOption(options, current) {
   return [options[0], { label: current, value: current }, ...options.slice(1)];
 }
 
+function cssColorToHex(color) {
+  if (!color) return null;
+  const trimmed = color.trim();
+  if (/^#[0-9a-f]{6}$/i.test(trimmed)) return trimmed;
+  if (/^#[0-9a-f]{3}$/i.test(trimmed)) {
+    const [, r, g, b] = trimmed.match(/^#(.)(.)(.)$/i);
+    return `#${r}${r}${g}${g}${b}${b}`;
+  }
+  const rgb = trimmed.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (rgb) {
+    const hex = [rgb[1], rgb[2], rgb[3]]
+      .map((n) => Number(n).toString(16).padStart(2, '0'))
+      .join('');
+    return `#${hex}`;
+  }
+  return null;
+}
+
 const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
   <button
     type="button"
@@ -141,6 +166,19 @@ const ToolbarStepper = ({ onDecrease, onIncrease, canDecrease, decreaseTitle, in
   </div>
 );
 
+const ToolbarColor = ({ value, onChange, onPointerDown, title, fallback }) => (
+  <label className="re-color-wrap" title={title}>
+    <input
+      type="color"
+      className="re-color-input"
+      value={cssColorToHex(value) || fallback}
+      onPointerDown={onPointerDown}
+      onChange={(e) => onChange(e.target.value)}
+    />
+    <span className="re-color-swatch" style={{ background: value || fallback }} aria-hidden />
+  </label>
+);
+
 export default function RichEditor({ value, onChange, placeholder, readOnly = false }) {
   const isExternalUpdate = useRef(false);
   const savedSelection = useRef(null);
@@ -153,11 +191,16 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,
-      TextStyle,
+      Small,
+      ExtendedTextStyle.configure({ mergeNestedSpanStyles: true }),
       FontFamily,
       FontSize,
       LineHeight,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TextColor,
+      BackgroundColor,
+      TextAlign.configure({
+        types: ['heading', 'paragraph', 'listItem', 'codeBlock', 'blockquote'],
+      }),
       Table.configure({ resizable: false }),
       TableRow,
       TableHeader,
@@ -217,6 +260,8 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
   const currentFont = normalizeFontValue(textStyle.fontFamily);
   const currentSize = textStyle.fontSize || '';
   const currentLineHeight = textStyle.lineHeight || '';
+  const currentColor = textStyle.color || '';
+  const currentBackgroundColor = textStyle.backgroundColor || '';
 
   const saveSelection = () => {
     const { from, to } = editor.state.selection;
@@ -258,6 +303,20 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
     });
   };
 
+  const handleTextColor = (val) => {
+    applyWithSavedSelection((chain) => {
+      if (!val) return chain.unsetColor();
+      return chain.setColor(val);
+    });
+  };
+
+  const handleBackgroundColor = (val) => {
+    applyWithSavedSelection((chain) => {
+      if (!val) return chain.unsetBackgroundColor();
+      return chain.setBackgroundColor(val);
+    });
+  };
+
   const fontSizePt = parseFontSizePt(currentSize);
   const lineHeightNum = parseLineHeight(currentLineHeight);
   const canDecreaseFontSize = fontSizePt > FONT_SIZE_MIN_PT + 0.001;
@@ -283,6 +342,8 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
       .unsetFontFamily()
       .unsetFontSize()
       .unsetLineHeight()
+      .unsetColor()
+      .unsetBackgroundColor()
       .clearNodes()
       .unsetAllMarks()
       .run();
@@ -432,6 +493,41 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
             options={lineHeightSelectOptions}
           />
         </ToolbarStepper>
+
+        <Divider />
+
+        <span className="re-color-group">
+          <ToolbarColor
+            value={currentColor}
+            onChange={handleTextColor}
+            onPointerDown={saveSelection}
+            title="글자색"
+            fallback="#111827"
+          />
+          <ToolbarBtn
+            onClick={() => handleTextColor('')}
+            disabled={!currentColor}
+            title="글자색 제거"
+          >
+            A̸
+          </ToolbarBtn>
+        </span>
+        <span className="re-color-group">
+          <ToolbarColor
+            value={currentBackgroundColor}
+            onChange={handleBackgroundColor}
+            onPointerDown={saveSelection}
+            title="배경색"
+            fallback="#fef08a"
+          />
+          <ToolbarBtn
+            onClick={() => handleBackgroundColor('')}
+            disabled={!currentBackgroundColor}
+            title="배경색 제거"
+          >
+            ▢̸
+          </ToolbarBtn>
+        </span>
 
         <Divider />
 
