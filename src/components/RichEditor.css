@@ -103,10 +103,61 @@
   max-width: 72px;
 }
 
+/* ── 작성 모드 탭 (하단) ── */
+.re-mode-footer {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--color-border);
+  background: #f8f9fb;
+}
+
+.re-mode-tab {
+  padding: 7px 16px;
+  border: none;
+  border-right: 1px solid var(--color-border);
+  background: white;
+  font-size: 9pt;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.re-mode-tab:hover:not(.active) {
+  background: #f3f4f6;
+}
+
+.re-mode-tab.active {
+  background: #e5e7eb;
+  color: #111827;
+  font-weight: 600;
+}
+
 /* ── 에디터 영역 ── */
 .re-editor-wrap {
   flex: 1;
   overflow-y: auto;
+}
+
+.re-html-source {
+  flex: 1;
+  min-height: 200px;
+  max-height: 420px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: none;
+  resize: vertical;
+  font-family: 'Consolas', 'D2Coding', 'Courier New', monospace;
+  font-size: 9pt;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: #fafbfc;
+  outline: none;
+}
+
+.re-html-source:focus {
+  background: white;
 }
 
 .re-content {

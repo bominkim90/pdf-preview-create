@@ -145,6 +145,8 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
   const isExternalUpdate = useRef(false);
   const savedSelection = useRef(null);
   const [, setToolbarTick] = useState(0);
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
+  const [htmlSource, setHtmlSource] = useState('');
 
   const editor = useEditor({
     editable: !readOnly,
@@ -177,7 +179,7 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
   });
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || isHtmlMode) return;
     if (editor.isFocused) return;
 
     const current = editor.getHTML();
@@ -186,7 +188,12 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
       editor.commands.setContent(value || '', false);
       isExternalUpdate.current = false;
     }
-  }, [value, editor]);
+  }, [value, editor, isHtmlMode]);
+
+  useEffect(() => {
+    if (!isHtmlMode) return;
+    setHtmlSource((prev) => (value !== prev ? value || '' : prev));
+  }, [value, isHtmlMode]);
 
   useEffect(() => {
     if (!editor) return;
@@ -281,9 +288,30 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
       .run();
   };
 
+  const switchToDesignMode = () => {
+    if (!isHtmlMode) return;
+    isExternalUpdate.current = true;
+    editor.commands.setContent(htmlSource || '', false);
+    isExternalUpdate.current = false;
+    onChange(editor.getHTML());
+    setIsHtmlMode(false);
+  };
+
+  const switchToHtmlMode = () => {
+    if (isHtmlMode) return;
+    setHtmlSource(editor.getHTML());
+    setIsHtmlMode(true);
+  };
+
+  const handleHtmlSourceChange = (e) => {
+    const next = e.target.value;
+    setHtmlSource(next);
+    onChange(next);
+  };
+
   return (
     <div className="rich-editor">
-      {!readOnly && (
+      {!readOnly && !isHtmlMode && (
       <div className="re-toolbar">
         <ToolbarBtn
           onClick={() => editor.chain().focus().undo().run()}
@@ -580,7 +608,40 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
       </div>
       )}
 
-      <EditorContent editor={editor} className="re-editor-wrap" />
+      {isHtmlMode ? (
+        <textarea
+          className="re-html-source"
+          value={htmlSource}
+          onChange={handleHtmlSourceChange}
+          spellCheck={false}
+          aria-label="HTML 소스 편집"
+        />
+      ) : (
+        <EditorContent editor={editor} className="re-editor-wrap" />
+      )}
+
+      {!readOnly && (
+        <div className="re-mode-footer" role="tablist" aria-label="작성 모드">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isHtmlMode}
+            className={`re-mode-tab${!isHtmlMode ? ' active' : ''}`}
+            onClick={switchToDesignMode}
+          >
+            디자인
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isHtmlMode}
+            className={`re-mode-tab${isHtmlMode ? ' active' : ''}`}
+            onClick={switchToHtmlMode}
+          >
+            HTML
+          </button>
+        </div>
+      )}
     </div>
   );
 }
