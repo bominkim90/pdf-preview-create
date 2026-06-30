@@ -28,6 +28,15 @@ export const BLOCK_STYLE_TYPES = [
   'blockquote',
 ];
 
+/** 툴바 스타일 적용 대상 (리스트 컨테이너 제외) */
+export const BLOCK_STYLE_TARGET_TYPES = [
+  'paragraph',
+  'heading',
+  'listItem',
+  'codeBlock',
+  'blockquote',
+];
+
 /** 인라인 태그: span, strong, em, code, u, s, small */
 export const MARK_STYLE_TYPES = [
   'textStyle',
@@ -60,6 +69,113 @@ export function readStyleValue(element, styleProperty) {
   const escaped = cssProperty.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const match = styleAttr.match(new RegExp(`(?:^|;)\\s*${escaped}\\s*:\\s*([^;]+)`, 'i'));
   return match?.[1]?.trim().replace(/['"]+/g, '') || null;
+}
+
+function clearTextStyleAttributeInRange(tr, state, from, to, attributeName) {
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    if (!node.isText) return;
+    node.marks.forEach((mark) => {
+      if (mark.type.name !== 'textStyle') return;
+      if (mark.attrs[attributeName] == null) return;
+      const newAttrs = { ...mark.attrs, [attributeName]: null };
+      const remaining = Object.fromEntries(
+        Object.entries(newAttrs).filter(([, v]) => v != null && v !== '')
+      );
+      tr.removeMark(pos, pos + node.nodeSize, mark.type);
+      if (Object.keys(remaining).length > 0) {
+        tr.addMark(pos, pos + node.nodeSize, mark.type.create(remaining));
+      }
+    });
+  });
+}
+
+function createBlockStyleCommands(attributeName, commandPrefix) {
+  const setKey = `set${commandPrefix}`;
+  const unsetKey = `unset${commandPrefix}`;
+
+  return {
+    [setKey]:
+      (value) =>
+      ({ tr, state, dispatch }) => {
+        const { from, to } = state.selection;
+
+        state.doc.nodesBetween(from, to, (node, pos) => {
+          if (BLOCK_STYLE_TARGET_TYPES.includes(node.type.name)) {
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, [attributeName]: value });
+          }
+        });
+
+        clearTextStyleAttributeInRange(tr, state, from, to, attributeName);
+
+        if (dispatch) dispatch(tr);
+        return true;
+      },
+    [unsetKey]:
+      () =>
+      ({ tr, state, dispatch }) => {
+        const { from, to } = state.selection;
+
+        state.doc.nodesBetween(from, to, (node, pos) => {
+          if (BLOCK_STYLE_TARGET_TYPES.includes(node.type.name)) {
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, [attributeName]: null });
+          }
+        });
+
+        clearTextStyleAttributeInRange(tr, state, from, to, attributeName);
+
+        if (dispatch) dispatch(tr);
+        return true;
+      },
+  };
+}
+
+function createBlockStyleAttributeExtension({
+  name,
+  styleProperty,
+  attributeName,
+  commandPrefix,
+}) {
+  const cssProperty = STYLE_CSS_PROPERTY[styleProperty] ?? styleProperty;
+
+  return Extension.create({
+    name,
+    addOptions() {
+      return { types: BLOCK_STYLE_TARGET_TYPES };
+    },
+    addGlobalAttributes() {
+      return [
+        {
+          types: this.options.types,
+          attributes: {
+            [attributeName]: {
+              default: null,
+              parseHTML: (element) => readStyleValue(element, styleProperty),
+              renderHTML: (attributes) => {
+                const value = attributes[attributeName];
+                if (!value) return {};
+                return { style: `${cssProperty}: ${value}` };
+              },
+            },
+          },
+        },
+      ];
+    },
+    addCommands() {
+      return createBlockStyleCommands(attributeName, commandPrefix);
+    },
+  });
+}
+
+export function getActiveStyleAttribute(editor, attributeName) {
+  const { $from } = editor.state.selection;
+  for (let depth = $from.depth; depth > 0; depth -= 1) {
+    const node = $from.node(depth);
+    if (BLOCK_STYLE_TARGET_TYPES.includes(node.type.name)) {
+      const value = node.attrs[attributeName];
+      if (value) return value;
+    }
+  }
+  return editor.getAttributes('textStyle')[attributeName] || '';
 }
 
 function createStyleAttributeExtension({
@@ -147,21 +263,21 @@ export const Small = Mark.create({
   renderHTML: () => ['small', 0],
 });
 
-export const FontFamily = createStyleAttributeExtension({
+export const FontFamily = createBlockStyleAttributeExtension({
   name: 'fontFamily',
   styleProperty: 'fontFamily',
   attributeName: 'fontFamily',
   commandPrefix: 'FontFamily',
 });
 
-export const FontSize = createStyleAttributeExtension({
+export const FontSize = createBlockStyleAttributeExtension({
   name: 'fontSize',
   styleProperty: 'fontSize',
   attributeName: 'fontSize',
   commandPrefix: 'FontSize',
 });
 
-export const LineHeight = createStyleAttributeExtension({
+export const LineHeight = createBlockStyleAttributeExtension({
   name: 'lineHeight',
   styleProperty: 'lineHeight',
   attributeName: 'lineHeight',

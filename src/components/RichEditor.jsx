@@ -11,6 +11,7 @@ import {
   ExtendedTextStyle,
   FontFamily,
   FontSize,
+  getActiveStyleAttribute,
   LineHeight,
   Small,
   TextColor,
@@ -49,7 +50,7 @@ const FONT_SIZE_OPTIONS = [
   { label: '15pt', value: '15pt' },
 ];
 
-const FONT_SIZE_DEFAULT = '10pt';
+const FONT_SIZE_DEFAULT = '11.5pt';
 const FONT_SIZE_MIN_PT = 8;
 const FONT_SIZE_STEP_PT = 0.5;
 
@@ -61,7 +62,7 @@ const LINE_HEIGHT_OPTIONS = [
   { label: '2.2', value: '2.2' },
 ];
 
-const LINE_HEIGHT_DEFAULT = '1.8';
+const LINE_HEIGHT_DEFAULT = '2';
 const LINE_HEIGHT_MIN = 1;
 const LINE_HEIGHT_STEP = 0.1;
 
@@ -257,9 +258,9 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
   if (!editor) return null;
 
   const textStyle = editor.getAttributes('textStyle');
-  const currentFont = normalizeFontValue(textStyle.fontFamily);
-  const currentSize = textStyle.fontSize || '';
-  const currentLineHeight = textStyle.lineHeight || '';
+  const currentFont = normalizeFontValue(getActiveStyleAttribute(editor, 'fontFamily'));
+  const currentSize = getActiveStyleAttribute(editor, 'fontSize') || '';
+  const currentLineHeight = getActiveStyleAttribute(editor, 'lineHeight') || '';
   const currentColor = textStyle.color || '';
   const currentBackgroundColor = textStyle.backgroundColor || '';
 

@@ -1,6 +1,33 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
+/** html2canvas가 span 인라인 font/line-height를 잘못 그리는 문제 완화 */
+const PDF_STRIP_INLINE_PROPS = ['font-family', 'font-size', 'line-height'];
+
+function stripStyleProperties(element, props) {
+  props.forEach((prop) => element.style.removeProperty(prop));
+  if (!element.getAttribute('style')?.trim()) {
+    element.removeAttribute('style');
+  }
+}
+
+function unwrapRedundantSpan(span) {
+  if (span.attributes.length > 0) return;
+  const parent = span.parentNode;
+  if (!parent) return;
+  while (span.firstChild) {
+    parent.insertBefore(span.firstChild, span);
+  }
+  parent.removeChild(span);
+}
+
+function normalizeBodyContentForPdf(root) {
+  root.querySelectorAll('.doc-body-content span[style]').forEach((span) => {
+    stripStyleProperties(span, PDF_STRIP_INLINE_PROPS);
+    unwrapRedundantSpan(span);
+  });
+}
+
 export async function exportToPDF(elementId, filename = '보고서.pdf') {
   const original = document.getElementById(elementId);
   if (!original) return;
@@ -52,7 +79,14 @@ export async function exportToPDF(elementId, filename = '보고서.pdf') {
   });
 
   tempContainer.appendChild(cloned);
+  normalizeBodyContentForPdf(cloned);
   document.body.appendChild(tempContainer);
+
+  // 웹폰트(Chiron Sung HK 등)가 완전히 로드된 뒤 캡처해야
+  // fallback 폰트의 다른 ascent/descent 메트릭으로 텍스트가 아래로 밀리는 현상을 방지할 수 있음
+  await document.fonts.ready;
+  // 폰트 적용 후 브라우저가 레이아웃을 재계산할 수 있도록 한 프레임 양보
+  await new Promise((resolve) => requestAnimationFrame(resolve));
 
   // 3. jsPDF 인스턴스 생성 (A4 가로 210mm, 세로 297mm)
   const doc = new jsPDF({
@@ -69,12 +103,14 @@ export async function exportToPDF(elementId, filename = '보고서.pdf') {
       const pageEl = tempPages[i];
 
       // 부모 scale 영향이 완전히 제거된 요소 캡처
+      // scrollY: -window.scrollY 로 실제 스크롤 오프셋을 보정해야
+      // absolute 위치 요소가 뷰포트 밖에 있을 때 좌표 계산 오차를 방지함
       const canvas = await html2canvas(pageEl, {
-        scale: 2.5, // 2.5배 해상도로 인쇄 퀄리티 상향
+        scale: 2.5,
         useCORS: true,
         logging: false,
-        scrollY: 0,
-        scrollX: 0,
+        scrollY: -window.scrollY,
+        scrollX: -window.scrollX,
       });
 
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
