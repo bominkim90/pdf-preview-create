@@ -1,6 +1,10 @@
-@import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+/* preflight 비활성화 — img{display:block} 등이 html2canvas baseline에 영향 */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
