@@ -1,42 +1,40 @@
 import '../../document.css';
 import './risk-guide.css';
+import { splitRiskGuideBody } from './splitBody';
 
 export default function DocumentPagesRiskGuide({ data, bodyChunks, id }) {
   const { title, author, date, body } = data;
-  const chunks = bodyChunks?.length ? bodyChunks : [body || ''];
+  const fixedChunks = splitRiskGuideBody(body);
+  const chunks = fixedChunks ?? (bodyChunks?.length ? bodyChunks : [body || '']);
 
   return (
     <div id={id} className="doc-pages-wrapper risk-guide-wrapper">
       {chunks.map((chunk, i) => {
         const isFirst = i === 0;
-        const isLast = i === chunks.length - 1;
+        const isLastPage = i === chunks.length - 1;
         return (
-          <div key={i} className="a4-page risk-guide-page">
+          <div
+            key={i}
+            className={`a4-page risk-guide-page${isLastPage ? ' risk-guide-page--watermark' : ''}`}
+          >
             {isFirst && (
               <header className="risk-guide-header">
                 <div className="risk-guide-title-block">
                   <hr className="risk-guide-title-line" />
                   <h1 className="risk-guide-title">{title || '업무 리스크 관리'}</h1>
-                  <hr className="risk-guide-title-line" />
+                  <hr className="risk-guide-title-line risk-guide-title-line--thin" />
                 </div>
                 <div className="risk-guide-meta">
                   <div className="risk-guide-meta-row">
-                    <span className="risk-guide-meta-label">작성자</span>
+                    <span className="risk-guide-meta-label">작성자 :</span>
                     <span>{author || '(작성자)'}</span>
                   </div>
                   <div className="risk-guide-meta-row">
-                    <span className="risk-guide-meta-label">작성일</span>
+                    <span className="risk-guide-meta-label">작성일 :</span>
                     <span>{date}</span>
                   </div>
                 </div>
               </header>
-            )}
-
-            {!isFirst && (
-              <div className="risk-guide-continued">
-                <span>{title || '업무 리스크 관리'}</span>
-                <span className="risk-guide-page-num">— {i + 1} —</span>
-              </div>
             )}
 
             <div
@@ -46,11 +44,10 @@ export default function DocumentPagesRiskGuide({ data, bodyChunks, id }) {
               }}
             />
 
-            {isLast && (
-              <footer className="risk-guide-footer">
-                <img src="/logo.jpg" alt="iStaging Asia" className="risk-guide-logo" />
-              </footer>
-            )}
+            <footer className="risk-guide-footer">
+              <img src="/logo.jpg" alt="iStaging Asia" className="risk-guide-logo" />
+              <span className="risk-guide-footer-page">- {i + 1} -</span>
+            </footer>
           </div>
         );
       })}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { splitRiskGuideBody } from '../templates/risk-guide/splitBody';
 
 const PAGE_INNER_H = 960;
 const HEADER_BLOCK_H = 230;
@@ -13,6 +14,12 @@ export default function useBodyChunks(body, measureRef) {
   const [chunks, setChunks] = useState(['']);
 
   useEffect(() => {
+    const fixedChunks = splitRiskGuideBody(body);
+    if (fixedChunks) {
+      setChunks(fixedChunks);
+      return;
+    }
+
     const container = measureRef.current;
     if (!container) return;
 

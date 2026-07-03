@@ -167,6 +167,9 @@ function createBlockStyleAttributeExtension({
 }
 
 export function getActiveStyleAttribute(editor, attributeName) {
+  const fromMark = editor.getAttributes('textStyle')[attributeName];
+  if (fromMark) return fromMark;
+
   const { $from } = editor.state.selection;
   for (let depth = $from.depth; depth > 0; depth -= 1) {
     const node = $from.node(depth);
@@ -175,7 +178,7 @@ export function getActiveStyleAttribute(editor, attributeName) {
       if (value) return value;
     }
   }
-  return editor.getAttributes('textStyle')[attributeName] || '';
+  return '';
 }
 
 function createStyleAttributeExtension({
@@ -263,14 +266,14 @@ export const Small = Mark.create({
   renderHTML: () => ['small', 0],
 });
 
-export const FontFamily = createBlockStyleAttributeExtension({
+export const FontFamily = createStyleAttributeExtension({
   name: 'fontFamily',
   styleProperty: 'fontFamily',
   attributeName: 'fontFamily',
   commandPrefix: 'FontFamily',
 });
 
-export const FontSize = createBlockStyleAttributeExtension({
+export const FontSize = createStyleAttributeExtension({
   name: 'fontSize',
   styleProperty: 'fontSize',
   attributeName: 'fontSize',

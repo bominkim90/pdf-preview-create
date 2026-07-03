@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react';
+import { CellSelection } from '@tiptap/pm/tables';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Table from '@tiptap/extension-table';
@@ -265,15 +266,21 @@ export default function RichEditor({ value, onChange, placeholder, readOnly = fa
   const currentBackgroundColor = textStyle.backgroundColor || '';
 
   const saveSelection = () => {
-    const { from, to } = editor.state.selection;
-    savedSelection.current = { from, to };
+    savedSelection.current = editor.state.selection;
   };
 
   const applyWithSavedSelection = (apply) => {
     let chain = editor.chain().focus();
     const saved = savedSelection.current;
-    if (saved && saved.from !== saved.to) {
-      chain = chain.setTextSelection({ from: saved.from, to: saved.to });
+    if (saved) {
+      if (saved instanceof CellSelection) {
+        chain = chain.command(({ tr }) => {
+          tr.setSelection(saved);
+          return true;
+        });
+      } else {
+        chain = chain.setTextSelection({ from: saved.from, to: saved.to });
+      }
     }
     apply(chain).run();
     savedSelection.current = null;

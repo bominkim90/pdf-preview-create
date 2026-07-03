@@ -41,7 +41,7 @@ export default function DocumentEditorView({
 }) {
   return (
     <div className="app-layout">
-      <BodyMeasureRoot measureRef={measureRef} bodyHtml={data.body} />
+      <BodyMeasureRoot measureRef={measureRef} bodyHtml={data.body} isRiskGuide={isRiskGuide} />
 
       <AppHeader
         documentId={documentId}
