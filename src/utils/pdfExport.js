@@ -1,8 +1,8 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
-/** html2canvas가 span 인라인 font/line-height를 잘못 그리는 문제 완화 */
-const PDF_STRIP_INLINE_PROPS = ['font-family', 'font-size', 'line-height'];
+/** html2canvas가 span 인라인 line-height를 잘못 그리는 문제 완화 (font-size/font-family는 인라인 유지) */
+const PDF_STRIP_INLINE_PROPS = ['line-height'];
 
 function stripStyleProperties(element, props) {
   props.forEach((prop) => element.style.removeProperty(prop));
