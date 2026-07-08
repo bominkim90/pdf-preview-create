@@ -1,17 +1,45 @@
-/* 업무 리스크 관리 양식 — [ISA] 업무 리스크 관리 안내 v1.1 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap');
+
+/* 업무 리스크 관리 양식 — [ISA] 업무 리스크 관리 안내 v1.1 (sans-serif 기준) */
+
+:root {
+  --risk-font-body: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'Apple SD Gothic Neo', sans-serif;
+  --risk-font-title: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'Apple SD Gothic Neo', sans-serif;
+  --risk-color-text: #000000;
+  --risk-color-muted: #404040;
+  --risk-color-accent: #3a3c84;
+  --risk-color-table-header: #1f4e79;
+  --risk-color-border: #c8c8c8;
+  --risk-color-callout-bg: #eaf2f8;
+  --risk-color-callout-border: #a6bdd7;
+  --risk-color-section-bg: #eaf2f8;
+  --risk-color-title-line: #1787c9;
+  --risk-page-padding-x: 20mm;
+  --risk-page-padding-top: 18mm;
+  --risk-page-padding-bottom: 18mm;
+  --risk-cell-padding: 1.06mm;
+}
 
 .risk-guide-wrapper {
-  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: var(--risk-font-body);
+}
+
+.risk-guide-wrapper .a4-page {
+  font-family: var(--risk-font-body);
+  font-size: 10pt;
+  line-height: 1.6;
+  color: var(--risk-color-text);
 }
 
 .risk-guide-page {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 44px 56px 32px;
-  font-size: 10.5pt;
-  line-height: 1.75;
-  color: #1a1a2e;
+  height: 1123px;
+  padding: var(--risk-page-padding-top) var(--risk-page-padding-x) var(--risk-page-padding-bottom);
+  font-size: 10pt;
+  line-height: 1.6;
+  color: var(--risk-color-text);
   position: relative;
   overflow: hidden;
 }
@@ -34,41 +62,76 @@
 /* ── 헤더 (1페이지) ── */
 .risk-guide-header {
   flex-shrink: 0;
-  margin-bottom: 16px;
+  margin-bottom: 3.6mm;
+  position: relative;
 }
 
-.risk-guide-title-block {
-  text-align: center;
+.risk-guide-title-shell {
+  width: 100%;
 }
 
 .risk-guide-title-line {
-  border: none;
-  border-top: 2px solid #1a3a6b;
+  display: block;
+  width: 100%;
   margin: 0;
 }
 
-.risk-guide-title-line--thin {
-  border-top-width: 1px;
-  margin-top: 2px;
+.risk-guide-title-line--top {
+  border-top: 6px solid var(--risk-color-title-line);
+  margin-bottom: 1mm;
+}
+
+.risk-guide-title-line--bottom {
+  border-top: none;
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(23, 135, 201, 0.92) 0%,
+    rgba(23, 135, 201, 1) 50%,
+    rgba(23, 135, 201, 0.85) 100%
+  );
+  margin-top: 1.8mm;
+}
+
+.risk-guide-title-block {
+  min-height: 8.6mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .risk-guide-title {
-  font-size: 22pt;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin: 12px 0;
+  font-family: var(--risk-font-title);
+  font-size: 23pt;
+  font-weight: 800;
+  color: var(--risk-color-text);
+  margin: 0;
   letter-spacing: 0.02em;
-  line-height: 1.3;
+  line-height: 0.98;
+  text-shadow: 0.45mm 0.45mm 0 rgba(0, 0, 0, 0.28);
+}
+
+.risk-guide-title--empty {
+  color: #b8b8b8;
+  text-shadow: none;
+  font-weight: 700;
+}
+
+.risk-guide-body-placeholder {
+  color: #aaa;
+  margin: 0;
 }
 
 .risk-guide-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
-  font-size: 9.5pt;
-  color: #374151;
-  margin-top: 10px;
+  gap: 0.4mm;
+  font-size: 6.6pt;
+  color: var(--risk-color-text);
+  margin-top: 0.8mm;
+  line-height: 1.2;
 }
 
 .risk-guide-meta-row {
@@ -78,7 +141,63 @@
 
 .risk-guide-meta-label {
   font-weight: 400;
-  color: #374151;
+  color: var(--risk-color-text);
+}
+
+/* ── 정의 박스 (헤더 고정) ── */
+.risk-guide-summary {
+  background: var(--risk-color-callout-bg);
+  border: 0.3mm solid var(--risk-color-callout-border);
+  padding: 0;
+  margin-top: 2.2mm;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: var(--risk-color-text);
+  width: 100%;
+  min-height: 35mm;
+  box-sizing: border-box;
+}
+
+.risk-guide-summary-inner {
+  padding: 2.8mm 3.2mm 2.8mm;
+}
+
+.risk-guide-summary-heading {
+  margin-bottom: 1.8mm;
+}
+
+.risk-guide-summary-body {
+  display: grid;
+  gap: 1.2mm;
+}
+
+.risk-guide-summary-title {
+  margin: 0;
+  color: var(--risk-color-accent);
+  line-height: 1.1;
+}
+
+.risk-guide-summary-title strong {
+  font-size: 13pt;
+  font-weight: 600;
+}
+
+.risk-guide-summary p {
+  margin: 0;
+  line-height: 1.5;
+  letter-spacing: 0.018em;
+}
+
+.risk-guide-summary p:last-child {
+  margin-bottom: 0;
+}
+
+.risk-guide-summary .risk-accent {
+  color: var(--risk-color-accent);
+  font-size: 12pt;
+  font-weight: 700;
+  text-decoration: underline;
+  font-style: normal;
 }
 
 /* ── 본문: document.css .doc-body-content 덮어쓰기 ── */
@@ -86,144 +205,221 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.75;
-  color: #1a1a2e;
+  font-family: var(--risk-font-body);
+  font-size: 10pt;
+  line-height: 1.6;
+  letter-spacing: 0.018em;
+  color: var(--risk-color-text);
   padding: 0;
   word-break: keep-all;
   white-space: normal;
 }
 
+.risk-guide-body--first {
+  padding-top: 0.4mm;
+}
+
 .risk-guide-body h2 {
-  font-size: 12pt;
+  font-size: 14pt;
   font-weight: 700;
-  color: #1a3a6b;
-  margin: 14px 0 6px;
-  line-height: 1.5;
+  color: var(--risk-color-accent);
+  margin: 28px 0 12px;
+  line-height: 1.25;
+}
+
+.risk-guide-body h2 .risk-section-label {
+  display: inline-block;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  background: var(--risk-color-section-bg);
+  padding: 0.8mm 1.6mm 0.4mm;
+  line-height: 0.96;
+}
+
+.risk-guide-body h2:first-child {
+  margin-top: 8px;
+}
+
+.risk-guide-body .risk-section-highlight h2 {
+  margin: 0;
+  font-size: 13pt;
+}
+
+.risk-guide-body .risk-section-highlight h2 .risk-section-label {
+  background: transparent;
+  padding: 0;
 }
 
 .risk-guide-body h3.risk-subheading {
   font-size: 11pt;
   font-weight: 700;
-  color: #1a1a2e;
-  margin: 12px 0 6px;
+  color: var(--risk-color-text);
+  margin: 1.4mm 0 0.7mm;
+  line-height: 1.6;
 }
 
 .risk-guide-body h3.risk-column-title {
-  font-size: 11.5pt;
+  font-size: 11pt;
   font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 8px;
+  color: var(--risk-color-text);
+  margin: 0 0 0.7mm;
+  line-height: 1.6;
 }
 
 .risk-guide-body p {
-  margin: 0 0 6px;
+  margin: 0 0 2.6mm;
 }
 
 .risk-guide-body ul,
 .risk-guide-body ol {
-  padding-left: 20px;
-  margin: 4px 0 10px;
+  list-style: none;
+  padding-left: 0;
+  margin: 2.2mm 0 4.4mm;
 }
 
 .risk-guide-body li {
-  margin: 3px 0;
+  margin: 0 0 2.1mm;
+  padding-left: 0;
 }
 
-.risk-guide-body li::marker {
-  font-size: 0.85em;
+.risk-guide-body ul.risk-list--nested {
+  margin: 0.7mm 0;
+  padding-left: 3.8mm;
 }
 
-/* 정의 박스 */
+.risk-guide-body ul.risk-list--nested > li {
+  padding-left: 0;
+}
+
+/* 정의 박스 (레거시 body HTML 호환) */
 .risk-guide-body .risk-summary-box {
-  background: #e8f0fe;
-  border: 1px solid #b8cfe8;
-  padding: 12px 16px;
-  margin-bottom: 14px;
+  background: var(--risk-color-callout-bg);
+  border: 0.3mm solid var(--risk-color-callout-border);
+  padding: 1.06mm;
+  margin-bottom: 3.2mm;
 }
 
 .risk-guide-body .risk-summary-title {
   margin-bottom: 6px;
-  color: #1a3a6b;
+  color: var(--risk-color-accent);
 }
 
 .risk-guide-body .risk-summary-title strong {
-  font-size: 11pt;
+  font-size: 13pt;
+  font-weight: 600;
 }
 
 .risk-guide-body .risk-accent {
-  color: #1a3a6b;
+  color: var(--risk-color-accent);
+  font-size: 11pt;
+  font-weight: 700;
   text-decoration: underline;
-  font-style: italic;
+  font-style: normal;
+}
+
+.risk-guide-body .risk-quote {
+  color: var(--risk-color-text);
+  font-weight: 500;
+  text-decoration: none;
 }
 
 .risk-guide-body .risk-emphasis {
-  color: #1a3a6b;
+  color: var(--risk-color-accent);
+  font-size: 11pt;
   font-weight: 700;
-  font-style: italic;
+  font-style: normal;
+  text-decoration: underline;
+}
+
+.risk-guide-body .risk-underline-accent {
+  color: var(--risk-color-accent);
+  font-size: 11pt;
+  font-weight: 700;
   text-decoration: underline;
 }
 
 /* 기억할 점 / 유의사항 목록 */
 .risk-guide-body .risk-list--remember li,
 .risk-guide-body .risk-list--notes li {
-  margin: 6px 0;
+  margin: 0 0 0.7mm;
+}
+
+.risk-guide-body .risk-list--remember .risk-underline-accent,
+.risk-guide-body .risk-list--remember u {
+  color: var(--risk-color-accent);
+  font-size: 11pt;
+  font-weight: 700;
+  font-style: italic;
+  text-decoration: underline;
 }
 
 /* 표 공통 */
 .risk-guide-body table.risk-table {
-  width: 100%;
+  width: 169mm;
   border-collapse: collapse;
-  margin: 8px 0 14px;
-  font-size: 9.5pt;
-  line-height: 1.6;
+  margin: 1.2mm 0 2.8mm;
+  font-size: 10pt;
+  line-height: 1.25;
+  table-layout: fixed;
 }
 
 .risk-guide-body table.risk-table th {
-  background: #1a3a6b;
-  color: #fff;
-  font-weight: 600;
-  padding: 7px 10px;
-  border: 1px solid #1a3a6b;
+  background: var(--risk-color-table-header);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 10pt;
+  padding: var(--risk-cell-padding);
+  border: 0.25mm solid #ffffff;
   text-align: center;
   vertical-align: middle;
+  line-height: 1.2;
 }
 
 .risk-guide-body table.risk-table td {
-  padding: 7px 10px;
-  border: 1px solid #c5cdd8;
+  padding: var(--risk-cell-padding);
+  border: 0.15mm solid var(--risk-color-border);
   vertical-align: top;
   text-align: left;
-  background: #fff;
+  background: #ffffff;
+  color: var(--risk-color-text);
+  line-height: 1.28;
 }
 
-.risk-guide-body table.risk-table tbody tr:nth-child(even) td {
-  background: #f5f7fa;
-}
-
-.risk-guide-body table.risk-table--category td:first-child {
+.risk-guide-body table.risk-table--category td:first-child,
+.risk-guide-body table.risk-table--items td:first-child {
   text-align: center;
-  font-weight: 600;
-  width: 22%;
+  font-weight: 700;
   vertical-align: middle;
+}
+
+.risk-guide-body table.risk-table--example {
+  font-size: 9pt;
+}
+
+.risk-guide-body table.risk-table--example td {
+  color: var(--risk-color-muted);
+  text-align: center;
+  vertical-align: middle;
+  font-style: italic;
+  line-height: 1.12;
+  padding-top: 0.8mm;
+  padding-bottom: 0.8mm;
 }
 
 .risk-guide-body table.risk-table--example td:first-child,
 .risk-guide-body table.risk-table--example td:nth-child(2) {
   text-align: center;
-  width: 10%;
+  font-weight: 400;
+  color: var(--risk-color-muted);
 }
 
-.risk-guide-body table.risk-table--example td:nth-child(2) {
-  width: 14%;
+.risk-guide-body .risk-list--remember .risk-accent {
+  font-style: italic;
 }
 
-.risk-guide-body table.risk-table--items td:first-child {
-  text-align: center;
-  font-weight: 600;
-  width: 22%;
-  vertical-align: middle;
+.risk-guide-body table.risk-table--items tr:last-child td {
+  font-weight: 700;
+  color: var(--risk-color-muted);
 }
 
 /* 셀 안 불릿 목록 */
@@ -234,76 +430,139 @@
 }
 
 .risk-guide-body ul.risk-cell-list li {
-  position: relative;
-  padding-left: 12px;
-  margin: 2px 0;
-}
-
-.risk-guide-body ul.risk-cell-list li::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: #1a1a2e;
+  padding-left: 0;
+  margin: 0 0 0.7mm;
 }
 
 /* ③④ 컬럼 가이드 */
 .risk-guide-body .risk-column-section {
-  margin-bottom: 16px;
+  margin-bottom: 4.2mm;
 }
 
 .risk-guide-body .risk-callout {
-  margin: 8px 0 8px 4px;
-  padding-left: 22px;
+  margin: 1.4mm 0 1.4mm 2.4mm;
+  padding-left: 0;
   position: relative;
 }
 
 .risk-guide-body .risk-callout-label {
   font-weight: 700;
-  margin: 0 0 4px;
+  margin: 0 0 0.7mm;
+  position: relative;
+  padding-left: 5.8mm;
 }
 
 .risk-guide-body .risk-callout ul {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 0;
 }
 
-.risk-guide-body .risk-callout--guide::before {
-  content: '▶';
+.risk-guide-body .risk-callout ul > li {
+  padding-left: 0;
+}
+
+.risk-guide-body .risk-callout--guide .risk-callout-label::before,
+.risk-guide-body .risk-callout--warn .risk-callout-label::before {
   position: absolute;
   left: 0;
-  top: 1px;
-  width: 16px;
-  height: 16px;
-  display: flex;
+  top: 0.15mm;
+  line-height: 1;
+}
+
+.risk-guide-body .risk-bullet {
+  display: inline-block;
+  width: 4.6mm;
+  text-align: center;
+  font-size: 0.58em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--risk-color-text);
+  vertical-align: 0.16em;
+}
+
+.risk-guide-body ul.risk-list--nested .risk-bullet,
+.risk-guide-body .risk-callout ul .risk-bullet,
+.risk-guide-body ul.risk-cell-list .risk-bullet {
+  width: 4.2mm;
+  font-size: 0.64em;
+}
+
+.risk-guide-body .risk-bullet-text {
+  display: inline;
+}
+
+.risk-guide-body .risk-callout--guide .risk-callout-label::before {
+  content: '>';
+  width: 3.2mm;
+  height: 3.2mm;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 7pt;
-  color: #fff;
-  background: #1a3a6b;
-  border-radius: 2px;
-  line-height: 1;
+  border: 0.35mm solid #2b63c6;
+  color: #2b63c6;
+  font-size: 7.5pt;
+  font-weight: 700;
+  box-sizing: border-box;
 }
 
+.risk-guide-body .risk-callout--warn .risk-callout-label::before {
+  content: '❖';
+  color: #c0392b;
+  font-size: 10pt;
+}
+
+.risk-guide-body .risk-callout--guide::before,
 .risk-guide-body .risk-callout--warn::before {
-  content: '◆';
-  position: absolute;
-  left: 0;
-  top: 2px;
-  color: #c45c26;
-  font-size: 11pt;
-  line-height: 1;
+  content: none;
+}
+
+.risk-guide-body table.risk-table--category col:first-child,
+.risk-guide-body table.risk-table--items col:first-child {
+  width: 28mm !important;
+}
+
+.risk-guide-body table.risk-table--category col:nth-child(2),
+.risk-guide-body table.risk-table--items col:nth-child(2) {
+  width: 141mm !important;
+}
+
+.risk-guide-body table.risk-table--example col:nth-child(1) {
+  width: 20mm !important;
+}
+
+.risk-guide-body table.risk-table--example col:nth-child(2) {
+  width: 18mm !important;
+}
+
+.risk-guide-body table.risk-table--example col:nth-child(3) {
+  width: 64mm !important;
+}
+
+.risk-guide-body table.risk-table--example col:nth-child(4) {
+  width: 67mm !important;
+}
+
+.risk-guide-body table.risk-table--category th:first-child,
+.risk-guide-body table.risk-table--category td:first-child,
+.risk-guide-body table.risk-table--items th:first-child,
+.risk-guide-body table.risk-table--items td:first-child {
+  width: 28mm;
+}
+
+.risk-guide-body table.risk-table--example th,
+.risk-guide-body table.risk-table--example td {
+  word-break: keep-all;
+}
+
+.risk-guide-body .risk-callout ul > li::before {
+  color: var(--risk-color-text);
 }
 
 /* 섹션 7 하이라이트 */
 .risk-guide-body .risk-section-highlight {
-  background: #e8f0fe;
-  padding: 6px 10px;
-  margin: 14px 0 8px;
-}
-
-.risk-guide-body .risk-section-highlight h2 {
-  margin: 0;
-  font-size: 12pt;
+  background: var(--risk-color-section-bg);
+  padding: 1.6mm 2.4mm;
+  margin: 3.2mm 0 1.4mm;
 }
 
 .risk-page-break {
@@ -313,34 +572,41 @@
 /* ── 푸터 ── */
 .risk-guide-footer {
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  padding-top: 16px;
+  padding-top: 3.4mm;
   margin-top: auto;
 }
 
+.risk-guide-footer-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
 .risk-guide-logo {
-  max-height: 40px;
-  max-width: 180px;
-  object-fit: contain;
-  opacity: 0.85;
+  width: 28.25mm;
+  height: auto;
+  opacity: 0.92;
 }
 
 .risk-guide-footer-page {
-  font-size: 9pt;
-  color: #6b7280;
-  letter-spacing: 0.15em;
+  font-size: 10pt;
+  color: var(--risk-color-text);
+  letter-spacing: normal;
+  text-align: right;
+  min-width: 14mm;
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
 
 /* 측정용 숨김 영역 */
 .body-measure-root--risk-guide {
   width: 682px;
-  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.75;
+  font-family: var(--risk-font-body);
+  font-size: 10pt;
+  line-height: 1.6;
 }
 
 .body-measure-root--risk-guide .risk-guide-body {

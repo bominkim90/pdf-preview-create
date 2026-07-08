@@ -1,4 +1,6 @@
 import { createRiskGuideFormData } from '../templates/risk-guide/defaults';
+import { getRiskGuidePreviewData } from '../templates/risk-guide/defaults';
+import { normalizeRiskGuideFormData } from '../templates/risk-guide/migrateRiskGuide';
 
 export const TEMPLATE_REPORT_DEFAULT = 'report-default';
 export const TEMPLATE_RISK_GUIDE = 'risk-guide';
@@ -52,6 +54,11 @@ export function createInitialFormData(overrides = {}) {
 }
 
 export function getDocumentTitle(formData) {
+  if (formData?.templateId === TEMPLATE_RISK_GUIDE) {
+    const preview = getRiskGuidePreviewData(formData);
+    const title = preview.title?.trim();
+    return title || '제목 없음';
+  }
   const title = formData?.title?.trim();
   return title || '제목 없음';
 }
@@ -67,9 +74,13 @@ export function mergeLoadedFormData(formData) {
   const templateId = formData?.templateId || TEMPLATE_REPORT_DEFAULT;
   const base = getBaseFormData(templateId);
   if (!formData || typeof formData !== 'object') return base;
-  return {
+  const merged = {
     ...base,
     ...formData,
     templateId,
   };
+  if (templateId === TEMPLATE_RISK_GUIDE) {
+    return normalizeRiskGuideFormData(merged);
+  }
+  return merged;
 }

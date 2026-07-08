@@ -25,6 +25,7 @@ export default function HeaderIconButton({
       <TooltipTrigger
         render={
           <Button
+            type="button"
             variant="outline"
             size="icon-sm"
             className={cn(
@@ -34,11 +35,11 @@ export default function HeaderIconButton({
             onClick={onClick}
             disabled={disabled}
             aria-label={label}
-          />
+          >
+            {children}
+          </Button>
         }
-      >
-        {children}
-      </TooltipTrigger>
+      />
       <TooltipContent side="bottom">{label}</TooltipContent>
     </Tooltip>
   );

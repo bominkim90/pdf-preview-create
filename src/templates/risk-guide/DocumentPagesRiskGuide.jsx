@@ -1,11 +1,12 @@
 import '../../document.css';
 import './risk-guide.css';
-import { splitRiskGuideBody } from './splitBody';
+import RiskGuideSummary from './RiskGuideSummary';
+
+const EMPTY_BODY_PLACEHOLDER = '<p class="risk-guide-body-placeholder">(본문을 입력하세요)</p>';
 
 export default function DocumentPagesRiskGuide({ data, bodyChunks, id }) {
-  const { title, author, date, body } = data;
-  const fixedChunks = splitRiskGuideBody(body);
-  const chunks = fixedChunks ?? (bodyChunks?.length ? bodyChunks : [body || '']);
+  const { title, author, date, summary } = data;
+  const chunks = Array.isArray(bodyChunks) && bodyChunks.length > 0 ? bodyChunks : [''];
 
   return (
     <div id={id} className="doc-pages-wrapper risk-guide-wrapper">
@@ -19,10 +20,20 @@ export default function DocumentPagesRiskGuide({ data, bodyChunks, id }) {
           >
             {isFirst && (
               <header className="risk-guide-header">
-                <div className="risk-guide-title-block">
-                  <hr className="risk-guide-title-line" />
-                  <h1 className="risk-guide-title">{title || '업무 리스크 관리'}</h1>
-                  <hr className="risk-guide-title-line risk-guide-title-line--thin" />
+                <div className="risk-guide-title-shell">
+                  <div
+                    className="risk-guide-title-line risk-guide-title-line--top"
+                    aria-hidden="true"
+                  />
+                  <div className="risk-guide-title-block">
+                    <h1 className={`risk-guide-title${title?.trim() ? '' : ' risk-guide-title--empty'}`}>
+                      {title?.trim() || '문서 제목'}
+                    </h1>
+                  </div>
+                  <div
+                    className="risk-guide-title-line risk-guide-title-line--bottom"
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="risk-guide-meta">
                   <div className="risk-guide-meta-row">
@@ -34,19 +45,22 @@ export default function DocumentPagesRiskGuide({ data, bodyChunks, id }) {
                     <span>{date}</span>
                   </div>
                 </div>
+                <RiskGuideSummary summary={summary} />
               </header>
             )}
 
             <div
-              className="risk-guide-body doc-body-content"
+              className={`risk-guide-body doc-body-content${isFirst ? ' risk-guide-body--first' : ''}`}
               dangerouslySetInnerHTML={{
-                __html: chunk || '<p style="color:#aaa">(본문을 입력하세요)</p>',
+                __html: chunk?.trim() ? chunk : EMPTY_BODY_PLACEHOLDER,
               }}
             />
 
             <footer className="risk-guide-footer">
-              <img src="/logo.jpg" alt="iStaging Asia" className="risk-guide-logo" />
-              <span className="risk-guide-footer-page">- {i + 1} -</span>
+              <div className="risk-guide-footer-row">
+                <img src="/logo.jpg" alt="iStaging Asia" className="risk-guide-logo" />
+                <span className="risk-guide-footer-page">- {i + 1} -</span>
+              </div>
             </footer>
           </div>
         );

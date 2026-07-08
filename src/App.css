@@ -403,6 +403,69 @@ label {
   color: var(--color-accent);
 }
 
+.field-hint {
+  margin: 0 0 12px;
+  font-size: 9pt;
+  line-height: 1.6;
+  color: var(--color-text-muted, #6b7280);
+}
+
+.field-hint code {
+  font-size: 8.5pt;
+  background: #f3f4f6;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.md-guide-details {
+  margin-bottom: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.md-guide-details summary {
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 9.5pt;
+  font-weight: 600;
+  color: var(--color-primary, #1a3a6b);
+}
+
+.md-guide-pre {
+  margin: 0;
+  padding: 10px 12px 12px;
+  font-size: 8.5pt;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: #374151;
+  border-top: 1px solid var(--color-border);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.compile-errors {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.compile-errors p {
+  margin: 0;
+  font-size: 9pt;
+  color: #b91c1c;
+  line-height: 1.5;
+}
+
+.md-source-textarea {
+  min-height: 360px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9pt;
+  line-height: 1.55;
+}
+
 .input {
   width: 100%;
   padding: 7px 10px;
@@ -756,13 +819,12 @@ label {
   font-family: 'Chiron Sung HK', serif;
 }
 
-/* scale-outer: scaled 크기만 flow에 반영, wrapper는 absolute로 분리 */
+/* scale-outer: JS(ScaledPreview)가 width/height를 직접 제어. absolute wrapper 클리핑용. */
 .preview-scale-outer {
   overflow: hidden;
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  /* width/height는 ScaledPreview에서 동적으로 적용 */
 }
 
 .preview-scale-wrapper {
@@ -1037,4 +1099,134 @@ label {
     position: relative !important;
     display: block !important; /* flex-shrink 해제 및 block 레이아웃 보장 */
   }
+}
+
+/* ── Error Boundary ── */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: #f3f4f6;
+}
+
+.error-boundary-card {
+  max-width: 480px;
+  width: 100%;
+  padding: 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.error-boundary-title {
+  margin: 0 0 12px;
+  font-size: 18pt;
+  font-weight: 700;
+  color: #1a3a6b;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.error-boundary-message {
+  margin: 0 0 24px;
+  font-size: 10pt;
+  color: #666;
+  line-height: 1.6;
+  word-break: break-word;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.error-boundary-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.error-boundary-btn {
+  padding: 10px 20px;
+  font-size: 10pt;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #1a3a6b;
+  color: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.error-boundary-btn:hover {
+  background: #254d8a;
+}
+
+.error-boundary-btn--secondary {
+  background: #e5e7eb;
+  color: #333;
+}
+
+.error-boundary-btn--secondary:hover {
+  background: #d1d5db;
+}
+
+/* ── Risk Guide AI 본문 생성 ── */
+.risk-ai-section {
+  border-top: 2px dashed #c7d9f5;
+}
+
+.btn-risk-ai-generate {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #1a3a6b 0%, #2556a0 100%);
+  color: #fff;
+  transition: opacity 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 6px rgba(26, 58, 107, 0.3);
+}
+
+.btn-risk-ai-generate:hover:not(:disabled) {
+  opacity: 0.88;
+  box-shadow: 0 4px 12px rgba(26, 58, 107, 0.4);
+}
+
+.btn-risk-ai-generate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-risk-ai-generate.loading {
+  background: #4a6fa5;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin-ai 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin-ai {
+  to { transform: rotate(360deg); }
+}
+
+.ai-error-msg {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  background: #fff3f3;
+  border: 1px solid #f5c6c6;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #c0392b;
+  line-height: 1.5;
 }

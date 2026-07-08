@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { deleteDocument } from '../api/documents';
@@ -8,13 +8,17 @@ import {
   createRiskGuideBlank,
   createRiskGuideExample,
   createRiskGuideFormData,
+  getRiskGuidePreviewData,
 } from '../templates/risk-guide/defaults';
+import { migrateLegacyMdSource } from '../templates/risk-guide/migrateRiskGuide';
 import { isMaster, signOut } from '../lib/auth';
 import { computeEditorPermissions } from '../utils/documentPermissions';
 import { exportReportPdfAndSave, notifyExportResult } from '../utils/reportExport';
 import { useAuth } from '../contexts/AuthContext';
 import useAiAttachment from './useAiAttachment';
 import useBodyChunks from './useBodyChunks';
+import useRiskGuideAi from './useRiskGuideAi';
+import { RISK_GUIDE_BODY_WIDTH } from '../templates/risk-guide/pagination';
 import useDocumentLoader from './useDocumentLoader';
 import useFormFieldSetter from './useFormFieldSetter';
 import useMobileEditorView from './useMobileEditorView';
@@ -49,6 +53,53 @@ export default function useReportEditor() {
 
   const isRiskGuide = isRiskGuideTemplate(data.templateId);
 
+  // 예전 통합 MD(# 제목, :::summary 포함)를 헤더 입력란 + 본문 MD로 자동 분리
+  useEffect(() => {
+    if (!isRiskGuide) return;
+
+    const mdSource = data.mdSource?.trim() || '';
+    const hasFormHeader =
+      data.title?.trim() || data.summaryTitle?.trim() || data.summaryText?.trim();
+    const hasLegacyHeader =
+      /^#\s+/m.test(mdSource) || /^:::summary\r?\n/m.test(mdSource);
+
+    if (!mdSource || hasFormHeader || !hasLegacyHeader) return;
+
+    const migrated = migrateLegacyMdSource(data);
+    if (
+      migrated.mdSource === (data.mdSource ?? '') &&
+      migrated.title === (data.title ?? '') &&
+      migrated.summaryTitle === (data.summaryTitle ?? '') &&
+      migrated.summaryText === (data.summaryText ?? '')
+    ) {
+      return;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      title: migrated.title ?? '',
+      author: migrated.author ?? prev.author,
+      date: migrated.date ?? prev.date,
+      summaryTitle: migrated.summaryTitle ?? '',
+      summaryText: migrated.summaryText ?? '',
+      mdSource: migrated.mdSource ?? '',
+    }));
+  }, [
+    isRiskGuide,
+    data.mdSource,
+    data.title,
+    data.summaryTitle,
+    data.summaryText,
+    setData,
+  ]);
+
+  const previewData = useMemo(() => {
+    if (!isRiskGuide) return data;
+    return getRiskGuidePreviewData(data);
+  }, [data, isRiskGuide]);
+
+  const compileErrors = isRiskGuide ? previewData.compileErrors || [] : [];
+
   const {
     attachedFile,
     setAttachedFile,
@@ -73,8 +124,16 @@ export default function useReportEditor() {
     setAttachedFile,
   });
 
-  const bodyChunks = useBodyChunks(data.body, measureRef);
+  const bodyChunks = useBodyChunks(isRiskGuide ? previewData.body : data.body, measureRef, {
+    disableFixedSplits: isRiskGuide,
+    riskGuideMode: isRiskGuide,
+    measureWidth: isRiskGuide ? RISK_GUIDE_BODY_WIDTH : 661,
+    measureClassName: isRiskGuide ? 'risk-guide-body doc-body-content' : 'doc-body-content',
+  });
   const set = useFormFieldSetter(setData);
+
+  const { plainText, setPlainText, isRiskAiGenerating, riskAiError, handleRiskGuideGenerateAI } =
+    useRiskGuideAi({ setData });
 
   const handleCopyAsNewDocument = () => {
     navigate('/new', {
@@ -95,7 +154,9 @@ export default function useReportEditor() {
     setIsExporting(true);
     try {
       const result = await exportReportPdfAndSave({
-        data,
+        data: isRiskGuide
+          ? { ...data, title: previewData.title || data.title, date: previewData.date || data.date }
+          : data,
         documentId,
         canSaveToDb,
         navigate,
@@ -145,18 +206,20 @@ export default function useReportEditor() {
   };
 
   const handleLoadRiskExample = () => {
-    if (!window.confirm('예시 내용으로 덮어씁니다. 계속할까요?')) return;
     setData(createRiskGuideExample());
+    toast.success('예시 내용을 불러왔습니다.');
   };
 
   const handleClearRiskContent = () => {
-    if (!window.confirm('제목·작성자·본문을 비웁니다. 계속할까요?')) return;
     setData(createRiskGuideBlank());
+    toast.success('문서 내용을 비웠습니다.');
   };
 
   return {
     profile,
     data,
+    previewData,
+    compileErrors,
     setData,
     documentId,
     isLoadingDoc,
@@ -188,5 +251,10 @@ export default function useReportEditor() {
     handleFileChange,
     handleRemoveFile,
     handleGenerateAI,
+    plainText,
+    setPlainText,
+    isRiskAiGenerating,
+    riskAiError,
+    handleRiskGuideGenerateAI,
   };
 }

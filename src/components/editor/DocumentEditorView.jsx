@@ -7,6 +7,8 @@ import EditorPreviewPanel from './EditorPreviewPanel';
 export default function DocumentEditorView({
   profile,
   data,
+  previewData,
+  compileErrors,
   setData,
   documentId,
   isLoadingDoc,
@@ -38,10 +40,19 @@ export default function DocumentEditorView({
   handleFileChange,
   handleRemoveFile,
   handleGenerateAI,
+  plainText,
+  setPlainText,
+  isRiskAiGenerating,
+  riskAiError,
+  handleRiskGuideGenerateAI,
 }) {
   return (
     <div className="app-layout">
-      <BodyMeasureRoot measureRef={measureRef} bodyHtml={data.body} isRiskGuide={isRiskGuide} />
+      <BodyMeasureRoot
+        measureRef={measureRef}
+        bodyHtml={isRiskGuide ? previewData.body : data.body}
+        isRiskGuide={isRiskGuide}
+      />
 
       <AppHeader
         documentId={documentId}
@@ -73,6 +84,7 @@ export default function DocumentEditorView({
           set={set}
           isReadOnlyView={isReadOnlyView}
           isRiskGuide={isRiskGuide}
+          compileErrors={compileErrors}
           isMobile={isMobile}
           mobileView={mobileView}
           setMobileView={setMobileView}
@@ -84,6 +96,11 @@ export default function DocumentEditorView({
           onRemoveFile={handleRemoveFile}
           onGenerateAI={handleGenerateAI}
           onTemplateChange={handleTemplateChange}
+          plainText={plainText}
+          setPlainText={setPlainText}
+          isRiskAiGenerating={isRiskAiGenerating}
+          riskAiError={riskAiError}
+          onRiskGuideGenerateAI={handleRiskGuideGenerateAI}
         />
 
         <EditorPreviewPanel
@@ -95,7 +112,7 @@ export default function DocumentEditorView({
           isExporting={isExporting}
           onExportPDF={handleExportPDF}
           templateId={data.templateId}
-          data={data}
+          data={isRiskGuide ? previewData : data}
           bodyChunks={bodyChunks}
         />
       </div>

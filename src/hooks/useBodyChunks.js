@@ -1,36 +1,82 @@
 import { useEffect, useState } from 'react';
 import { splitRiskGuideBody } from '../templates/risk-guide/splitBody';
+import {
+  getRiskGuideBodyLimit,
+  RISK_GUIDE_BODY_WIDTH,
+  RISK_GUIDE_CONTINUED_HEADER_H,
+  RISK_GUIDE_FIRST_HEADER_H,
+  RISK_GUIDE_FOOTER_H,
+  RISK_GUIDE_PAGE_INNER_H,
+} from '../templates/risk-guide/pagination';
 
 const PAGE_INNER_H = 960;
 const HEADER_BLOCK_H = 230;
+export const RISK_GUIDE_SUMMARY_OVERHEAD = 130;
 const CONTINUED_BLOCK_H = 36;
+const EMPTY_CHUNK = [''];
 
-function getBodyLimit(isFirst) {
-  const overhead = isFirst ? HEADER_BLOCK_H : CONTINUED_BLOCK_H;
+function getBodyLimit(isFirst, extraFirstPageOverhead = 0, riskGuideMode = false) {
+  if (riskGuideMode) {
+    return getRiskGuideBodyLimit(isFirst);
+  }
+  const overhead = isFirst ? HEADER_BLOCK_H + extraFirstPageOverhead : CONTINUED_BLOCK_H;
   return Math.max(80, PAGE_INNER_H - overhead);
 }
 
-export default function useBodyChunks(body, measureRef) {
-  const [chunks, setChunks] = useState(['']);
+export default function useBodyChunks(
+  body,
+  measureRef,
+  {
+    extraFirstPageOverhead = 0,
+    disableFixedSplits = false,
+    riskGuideMode = false,
+    measureWidth = 661,
+    measureClassName = 'doc-body-content',
+  } = {}
+) {
+  const [chunks, setChunks] = useState(EMPTY_CHUNK);
 
   useEffect(() => {
-    const fixedChunks = splitRiskGuideBody(body);
-    if (fixedChunks) {
-      setChunks(fixedChunks);
-      return;
+    let cancelled = false;
+    let timerId = null;
+
+    const safeSetChunks = (next) => {
+      if (!cancelled) setChunks(next.length ? next : EMPTY_CHUNK);
+    };
+
+    if (!body?.trim()) {
+      safeSetChunks(EMPTY_CHUNK);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!disableFixedSplits) {
+      const fixedChunks = splitRiskGuideBody(body);
+      if (fixedChunks) {
+        safeSetChunks(fixedChunks);
+        return () => {
+          cancelled = true;
+        };
+      }
     }
 
     const container = measureRef.current;
-    if (!container) return;
-
-    let timerId = null;
+    if (!container) {
+      safeSetChunks([body]);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const run = () => {
-      const singlePageLimit = getBodyLimit(true);
+      if (cancelled) return;
+
+      const singlePageLimit = getBodyLimit(true, extraFirstPageOverhead, riskGuideMode);
 
       const children = [...container.children];
       if (!children.length) {
-        setChunks([body || '']);
+        safeSetChunks([body || '']);
         return;
       }
 
@@ -38,7 +84,7 @@ export default function useBodyChunks(body, measureRef) {
       for (const c of children) totalH += c.offsetHeight;
 
       if (totalH <= singlePageLimit) {
-        setChunks([body || '']);
+        safeSetChunks([body || '']);
         return;
       }
 
@@ -52,8 +98,8 @@ export default function useBodyChunks(body, measureRef) {
 
       const getTempHeight = (html) => {
         const temp = document.createElement('div');
-        temp.className = 'doc-body-content';
-        temp.style.width = '661px';
+        temp.className = measureClassName;
+        temp.style.width = `${measureWidth}px`;
         temp.innerHTML = html;
         container.parentNode.appendChild(temp);
         const h = temp.offsetHeight;
@@ -177,6 +223,8 @@ export default function useBodyChunks(body, measureRef) {
       let isFirst = true;
 
       for (let i = 0; i < flatItems.length; i++) {
+        if (cancelled) return;
+
         const item = flatItems[i];
         const testItems = [...currentPageItems, item];
         const testHtml = renderItems(testItems);
@@ -184,13 +232,20 @@ export default function useBodyChunks(body, measureRef) {
 
         const remainingItems = flatItems.slice(i + 1);
 
-        let limit = getBodyLimit(isFirst);
+        let limit = getBodyLimit(isFirst, extraFirstPageOverhead, riskGuideMode);
 
         if (remainingItems.length > 0) {
           const remainingHtml = renderItems(remainingItems);
           const remainingH = getTempHeight(remainingHtml);
           if (remainingH > 80) {
-            limit = PAGE_INNER_H - (isFirst ? HEADER_BLOCK_H : CONTINUED_BLOCK_H);
+            const pageInner = riskGuideMode ? RISK_GUIDE_PAGE_INNER_H : PAGE_INNER_H;
+            const continuedOverhead = riskGuideMode
+              ? RISK_GUIDE_CONTINUED_HEADER_H + RISK_GUIDE_FOOTER_H
+              : CONTINUED_BLOCK_H;
+            const firstOverhead = riskGuideMode
+              ? RISK_GUIDE_FIRST_HEADER_H + RISK_GUIDE_FOOTER_H
+              : HEADER_BLOCK_H + extraFirstPageOverhead;
+            limit = pageInner - (isFirst ? firstOverhead : continuedOverhead);
           }
         }
 
@@ -203,26 +258,39 @@ export default function useBodyChunks(body, measureRef) {
         }
       }
 
+      if (cancelled) return;
+
       if (currentPageItems.length > 0) {
         result.push(renderItems(currentPageItems));
       }
 
-      setChunks(result.length ? result : [body || '']);
+      safeSetChunks(result.length ? result : [body || '']);
     };
 
     const debouncedRun = () => {
       if (timerId) clearTimeout(timerId);
       timerId = setTimeout(() => {
-        document.fonts.ready.then(() => requestAnimationFrame(run));
+        document.fonts.ready.then(() => {
+          if (!cancelled) requestAnimationFrame(run);
+        });
       }, 100);
     };
 
     debouncedRun();
 
     return () => {
+      cancelled = true;
       if (timerId) clearTimeout(timerId);
     };
-  }, [body, measureRef]);
+  }, [
+    body,
+    measureRef,
+    extraFirstPageOverhead,
+    disableFixedSplits,
+    riskGuideMode,
+    measureWidth,
+    measureClassName,
+  ]);
 
   return chunks;
 }

@@ -5,6 +5,7 @@ import {
   RETENTION_OPTIONS,
 } from '../../constants/editorFormOptions';
 import { TEMPLATE_OPTIONS } from '../../templates/registry';
+import { RISK_GUIDE_MD_GUIDE } from '../../templates/risk-guide/guide';
 import AiReportSection from './AiReportSection';
 
 export default function EditorFormPanel({
@@ -13,6 +14,7 @@ export default function EditorFormPanel({
   set,
   isReadOnlyView,
   isRiskGuide,
+  compileErrors = [],
   isMobile,
   mobileView,
   setMobileView,
@@ -24,6 +26,11 @@ export default function EditorFormPanel({
   onRemoveFile,
   onGenerateAI,
   onTemplateChange,
+  plainText,
+  setPlainText,
+  isRiskAiGenerating,
+  riskAiError,
+  onRiskGuideGenerateAI,
 }) {
   return (
     <aside
@@ -52,39 +59,157 @@ export default function EditorFormPanel({
           </section>
 
           {isRiskGuide && (
-            <section className="form-section">
+            <section className="form-section risk-ai-section">
               <h3 className="section-title">
-                <span className="section-icon">📋</span> 기본 정보
+                <span className="section-icon">✨</span> AI로 본문 생성
               </h3>
+              <p className="field-hint">
+                원문 텍스트를 붙여넣으면 AI가 커스텀 MD 형식으로 변환하여 아래 본문 MD에 자동
+                입력합니다. 아래 문서 헤더에서 제목·작성자·작성일을 먼저 입력해야 합니다.
+              </p>
               <div className="field">
-                <label>
-                  제목 <span className="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={data.title}
-                  onChange={set('title')}
-                  placeholder="업무 리스크 관리"
-                  className="input input-lg"
+                <label>원문 내용</label>
+                <textarea
+                  value={plainText ?? ''}
+                  onChange={(e) => setPlainText(e.target.value)}
+                  rows={10}
+                  className="input textarea"
+                  placeholder="변환할 원문 내용을 붙여넣으세요..."
+                  spellCheck={false}
+                  disabled={isRiskAiGenerating}
                 />
               </div>
-              <div className="field-grid-2">
+              {riskAiError && <p className="ai-error-msg">{riskAiError}</p>}
+              <button
+                type="button"
+                className={`btn-risk-ai-generate ${isRiskAiGenerating ? 'loading' : ''}`}
+                onClick={onRiskGuideGenerateAI}
+                disabled={isRiskAiGenerating}
+              >
+                {isRiskAiGenerating ? (
+                  <>
+                    <span className="btn-spinner" aria-hidden="true" />
+                    변환 중...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    AI로 본문 생성
+                  </>
+                )}
+              </button>
+            </section>
+          )}
+
+          {isRiskGuide && (
+            <>
+              <section className="form-section">
+                <h3 className="section-title">
+                  <span className="section-icon">📋</span> 문서 헤더
+                </h3>
+                <p className="field-hint">
+                  제목·요약 박스·작성자 정보는 여기서 직접 편집합니다. 아래 MD는 본문만 담습니다.
+                </p>
                 <div className="field">
-                  <label>작성자</label>
+                  <label>문서 제목</label>
                   <input
                     type="text"
-                    value={data.author}
-                    onChange={set('author')}
-                    placeholder="이름 / 부서"
+                    value={data.title ?? ''}
+                    onChange={set('title')}
+                    placeholder="예: 업무 리스크 관리"
+                    className="input input-lg"
+                  />
+                </div>
+                <div className="field-grid-2">
+                  <div className="field">
+                    <label>작성자</label>
+                    <input
+                      type="text"
+                      value={data.author ?? ''}
+                      onChange={set('author')}
+                      placeholder="예: 홍길동 과장"
+                      className="input"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>작성일</label>
+                    <input
+                      type="text"
+                      value={data.date ?? ''}
+                      onChange={set('date')}
+                      placeholder="예: 2026-06-26"
+                      className="input"
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label>요약 제목</label>
+                  <input
+                    type="text"
+                    value={data.summaryTitle ?? ''}
+                    onChange={set('summaryTitle')}
+                    placeholder="예: 업무 리스크란?"
                     className="input"
                   />
                 </div>
                 <div className="field">
-                  <label>작성일</label>
-                  <input type="text" value={data.date} onChange={set('date')} className="input" />
+                  <label>요약 본문</label>
+                  <textarea
+                    value={data.summaryText ?? ''}
+                    onChange={set('summaryText')}
+                    rows={5}
+                    className="input textarea"
+                    placeholder="빈 줄로 문단을 구분합니다. «강조» 마킹을 쓸 수 있습니다."
+                    spellCheck={false}
+                  />
                 </div>
-              </div>
-            </section>
+              </section>
+
+              <section className="form-section">
+                <h3 className="section-title">
+                  <span className="section-icon">📝</span> 본문 MD
+                </h3>
+                <p className="field-hint">
+                  섹션·표·목록 등 본문 내용을 MD로 입력합니다. 헤더(제목·요약)는 위 입력란을
+                  사용하세요.
+                </p>
+                <details className="md-guide-details">
+                  <summary>MD 문법 가이드</summary>
+                  <pre className="md-guide-pre">{RISK_GUIDE_MD_GUIDE}</pre>
+                </details>
+                {compileErrors.length > 0 && (
+                  <div className="compile-errors">
+                    {compileErrors.map((error) => (
+                      <p key={error}>{error}</p>
+                    ))}
+                  </div>
+                )}
+                <div className="field">
+                  <label>본문 MD</label>
+                  <textarea
+                    value={data.mdSource ?? ''}
+                    onChange={(e) => setData((prev) => ({ ...prev, mdSource: e.target.value }))}
+                    rows={18}
+                    className="input textarea md-source-textarea"
+                    placeholder="예시 불러오기로 샘플 본문을 확인할 수 있습니다."
+                    spellCheck={false}
+                  />
+                </div>
+              </section>
+            </>
           )}
 
           {!isRiskGuide && (
@@ -298,11 +423,11 @@ export default function EditorFormPanel({
             </>
           )}
 
-          <section className="form-section">
-            <h3 className="section-title">
-              <span className="section-icon">📝</span> 문서 내용
-            </h3>
-            {!isRiskGuide && (
+          {!isRiskGuide && (
+            <section className="form-section">
+              <h3 className="section-title">
+                <span className="section-icon">📝</span> 문서 내용
+              </h3>
               <div className="field">
                 <label>
                   제목 <span className="required">*</span>
@@ -315,23 +440,19 @@ export default function EditorFormPanel({
                   className="input input-lg"
                 />
               </div>
-            )}
-            <div className="field">
-              <label>
-                본문 <span className="required">*</span>
-              </label>
-              <RichEditor
-                value={data.body}
-                onChange={(html) => setData((prev) => ({ ...prev, body: html }))}
-                readOnly={isReadOnlyView}
-                placeholder={
-                  isRiskGuide
-                    ? '본문을 입력하세요. 표·목록·형광펜 등을 사용할 수 있습니다.'
-                    : '본문을 직접 입력하거나, 파일을 첨부하여 AI로 생성하세요.'
-                }
-              />
-            </div>
-          </section>
+              <div className="field">
+                <label>
+                  본문 <span className="required">*</span>
+                </label>
+                <RichEditor
+                  value={data.body}
+                  onChange={(html) => setData((prev) => ({ ...prev, body: html }))}
+                  readOnly={isReadOnlyView}
+                  placeholder="본문을 직접 입력하거나, 파일을 첨부하여 AI로 생성하세요."
+                />
+              </div>
+            </section>
+          )}
 
           {!isRiskGuide && (
             <>
